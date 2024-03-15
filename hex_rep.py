@@ -12,7 +12,9 @@ BLACK = 8
 
 PIECE_MASK = 7
 
-piece_english = {0:'WHITE', 1: 'PAWN', 2: 'ROOK', 3: 'KNIGHT', 4: 'BISHOP', 5:'QUEEN',6:'KING',7:'NO_PIECE', 8:'BLACK'}
+
+# for testing only
+# piece_english = {0:'WHITE', 1: 'PAWN', 2: 'ROOK', 3: 'KNIGHT', 4: 'BISHOP', 5:'QUEEN',6:'KING',7:'NO_PIECE', 8:'BLACK'}
 
 def square_to_bit_position(file, rank):
     # Assuming the chessboard is represented with files a-h and ranks 1-8
@@ -54,6 +56,17 @@ def pop_rightmost_hex_digit(hex_number, hexa=True):
     
     return popped_hex_number, hex_number
 
+def add_rightmost_hex_digit(board, color, piece, hexa=True):
+    hex_piece = color | piece
+
+    if hexa:
+        hex_piece = hex_piece >> 4
+    else: 
+        hex_piece = hex_piece >> 1
+
+    updated_board = hex_piece | board 
+    return updated_board
+
 def print_board(board, hexa = True):
     x = board
     curr = ''
@@ -68,6 +81,13 @@ def print_board(board, hexa = True):
             curr += '\n'
         if counter > 100:
             break
+    
+    while len(curr) <= 71:            
+        curr += '0'
+        counter += 1 
+        if counter % 8 == 0:
+            curr += '\n'
+
     print(curr[::-1])
 
 def clear_piece(bitboard, position):
@@ -86,6 +106,8 @@ def add_piece(board, square, color, piece, hexa=True):
 
     updated_board = hex_piece | updated_board 
     return updated_board
+
+
 
 def get_spots(board, square):
     whole_mask = board >> (square * 4) & 0xF
@@ -157,10 +179,11 @@ def main():
     # print(get_spots(board, spot0), get_spots(board, spot1))
 
     # new_board = get_move(piece0, color0, spot0, piece1, color1, spot1, board)
-    print_board(generate_knight_moves(7, 1, BLACK, board, KNIGHT))
-    print_board(generate_knight_moves(6, 2, BLACK, board, KNIGHT))
+    # print_board(generate_knight_moves(7, 1, BLACK, board, KNIGHT))
+    # print_board(generate_knight_moves(6, 2, BLACK, board, KNIGHT))
 
-    print_board(generate_knight_moves(0, 0, BLACK, board, KNIGHT))
+    # print_board(generate_knight_moves(0, 0, BLACK, board, KNIGHT))
+    # number_board()
     print(hex(board))
 
 def generate_knight_moves(file, rank, color, board, piece):
@@ -173,49 +196,77 @@ def generate_knight_moves(file, rank, color, board, piece):
 
     output = 0
 
+    old_square = file * 8 + rank
+    is_left_edge = old_square % 8 == 0
+    is_right_edge = old_square - 7 % 8 == 0
+
+    print(is_left_edge,is_right_edge)
+
     while num > 0:
         curr = num & 0b1111
         new_file = 0 
         new_rank = 0
 
-        if curr == 0b1:
+        if curr == 0b1 and not is_right_edge:
             new_file = file + 2 
             new_rank = rank + 1
-        elif curr == 0b10:
+        elif curr == 0b10 and not is_right_edge:
             new_file = file + 2 
             new_rank = rank - 1        
-        elif curr == 0b1101:
+        elif curr == 0b1101:# and not is_left_edge:
             new_file = file - 2 
             new_rank = rank + 1
-        elif curr == 0b1110:
+        elif curr == 0b1110:# and not is_left_edge:
             new_file = file - 2 
             new_rank = rank - 1
-        elif curr == 0b100:
+        elif curr == 0b100 and not is_right_edge:
             new_file = file + 1 
             new_rank = rank + 2
-        elif curr == 0b111:
+        elif curr == 0b111:# and not is_left_edge:
             new_file = file - 1 
             new_rank = rank + 2
-        elif curr == 0b1000: 
+        elif curr == 0b1000 and not is_right_edge: 
             new_file = file + 1 
             new_rank = rank - 2     
-        elif curr == 0b1011: 
+        elif curr == 0b1011:# and not is_left_edge:
             new_file = file - 1
             new_rank = rank - 2
         
         # print(new_file, new_rank, bin(num))
-
-        if new_file >= 8 or new_rank >= 8 or new_file < 0 or new_rank < 0:
-            pass
+        # new_file >= 8 or new_rank <= 8 or new_file < 0 or new_rank > 0
+        new_square = new_rank * 8 + new_file
+        if new_square < 0 or new_square >=64:
+            pass 
         else:
-            square = new_rank * 8 + new_file
-            output = add_piece(output, square, BLACK, PIECE_MASK)
+            output = add_piece(board, new_square, color, piece, hexa=True)
+            print(output)
 
         num = num >> 0b100
     print(hex(output))
 
     return output
 
+def number_board():
+    '''for testing, prints
+        0 1 2 3 4 5 6 7 
+        8 9 10 11 12 13 14 15 
+        16 17 18 19 20 21 22 23 
+        24 25 26 27 28 29 30 31 
+        32 33 34 35 36 37 38 39 
+        40 41 42 43 44 45 46 47 
+        48 49 50 51 52 53 54 55 
+        56 57 58 59 60 61 62 63 
+    '''
+
+    string = ''
+    for i in range(8):
+        counter = 0
+        for j in range(8):
+            string = string + str(i * 8 + j) + " "
+        if counter % 8 == 0:
+            string = string + '\n'
+
+    print(string)
 
 
 # def generate_knight_moves(color, spot, board, piece):
