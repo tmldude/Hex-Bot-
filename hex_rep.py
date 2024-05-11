@@ -1,6 +1,45 @@
 
 
 class Board:
+    ''' 
+    Board class for representing a chess board 
+
+    INDEXES: bits 0-255 (hex bit 0-63)
+    256 bit, 64 hex bit representation. Every 4 bits (1hex) is a piece
+    0___ -> the piece mask
+    _000 -> the color of the piece
+    
+    important outputs: Board.getallnextboardstates 
+        -> outputs all legal moves from a position including thier game states
+        
+
+    Bits beyond 256 are state bits: 
+    the 64th hex bit
+    STATE: value === 0 (WHITE) then white to move
+    STATE: value === 8 (BLACK) then black to move
+    STATE: value === 0 + 1 (WHITE + 1) then white checkmate
+    STATE: value === 8 + 1 (BLACK + 1) then black checkmate
+    
+    the 65th digit from the hex number
+    STATE: 0b0001  represents king side castle WHITE
+    STATE: 0b0010 represents queen side castle WHITE
+    STATE: 0b0100 represents king side caslte BLACK
+    STATE: 0b1000 represents queen side caslte BLACK
+
+    All state values are 0 for available and 1 for not available
+    - if king moves, all state set to 1
+    - if rook moves on queen or king side, that state is set to 1
+    
+
+    extracts the 66th digit from the hex number
+    the 66th digit will hold state 
+    value: 0 - NO EN passant
+    value: 1 - last move was a pawn that was moved 2
+
+
+    this bit will hold the last piece that was moved stored in the 67th hex digit
+    helpful for en passant, if state en passant is 1, this will say if the last move is legal or not'''
+
     # Define constants for piece types
     PAWN = 1
     ROOK = 2
@@ -26,27 +65,85 @@ class Board:
     EN_PASSANT_STATE = 66
     LAST_PIECE_MOVED = 67
 
-    ALL_DEFINED = 0x0000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+    ALL_DEFINED = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+
+    @staticmethod
+    def noNoEa(x):
+        return (x << (17 * 4)) & Board.NOT_A_FILE
+
+    @staticmethod
+    def noEaEa(x):
+        return (x << (10 * 4)) & Board.NOT_AB_FILE
+
+    @staticmethod
+    def soEaEa(x):
+        return (x >> (6 * 4)) & Board.NOT_AB_FILE
+
+    @staticmethod
+    def soSoEa(x):
+        return (x >> (15 * 4)) & Board.NOT_A_FILE
+
+    @staticmethod
+    def noNoWe(x):
+        return (x << (15 * 4)) & Board.NOT_H_FILE
+
+    @staticmethod
+    def noWeWe(x):
+        return (x << (6 * 4)) & Board.NOT_GH_FILE
+
+    @staticmethod
+    def soWeWe(x):
+        return (x >> (10 * 4)) & Board.NOT_GH_FILE
+
+    @staticmethod
+    def soSoWe(x):
+        return (x >> (17 * 4)) & Board.NOT_H_FILE
+    
+    @staticmethod
+    def soutOne(b):
+        return b >> (8 * 4)
+
+    @staticmethod
+    def nortOne(b):
+        return b << (8 * 4)
+
+    @staticmethod
+    def eastOne(b):
+        return (b << (1*4)) & Board.NOT_A_FILE
+
+    @staticmethod
+    def noEaOne(b):
+        return (b << (9*4)) & Board.NOT_A_FILE
+
+    @staticmethod
+    def soEaOne(b):
+        return (b >> (7*4)) & Board.NOT_A_FILE
+
+    @staticmethod
+    def westOne(b):
+        return (b >> (1*4)) & Board.NOT_H_FILE
+
+    @staticmethod
+    def soWeOne(b):
+        return (b >> (9*4)) & Board.NOT_H_FILE
+
+    @staticmethod
+    def noWeOne(b):
+        return (b << (7*4)) & Board.NOT_H_FILE
+
 
 
     def __init__(self, board=None, color_to_move=WHITE, last_move=None, fpgn=None) -> None:
         self.board = board
-        # print(board)
         if board:
-            self.set_color_to_move_bit(color_to_move) 
-            self.set_last_move_bits(last_move if board else last_move)
-            self.set_castle_state(0)
-            self.set_en_passant_state(0x0)
+            self.set_square(self.COLOR_TO_MOVE, color_to_move) 
+            self.set_square(self.LAST_PIECE_MOVED, last_move if board else last_move)
+            self.set_square(self.CASTLE_STATES, 0)
+            self.set_square(self.EN_PASSANT_STATE,0x0)
 
         if board == None: 
             self.getStartPos()
         self.whitePiece, self.blackPiece = self.getWhiteBlackMasks()
-        # print(hex(self.whitePiece))
-        # print(hex(self.blackPiece))
-
-        # self.print_board_hex(self.whitePiece)
-        # self.print_board_hex(self.blackPiece)
-
 
     def getStartPos(self):
         self.board = 0x0
@@ -70,6 +167,8 @@ class Board:
         self.add_piece( 61, self.BLACK | self.BISHOP)
         self.add_piece( 62, self.BLACK | self.KNIGHT)
         self.add_piece( 63, self.BLACK | self.ROOK)
+        
+        self.add_piece( 41, self.WHITE | self.PAWN)
 
         self.add_piece( 64, 0x0) # setting white to move
         self.add_piece( 65, 0x0) # setting all castling to 0
@@ -101,31 +200,10 @@ class Board:
         return whiteMask, blackMask
 
 
-    '''Takes in a hex number, pops the rightmost digit, returns the popped digit and the hex number'''   
-    def pop_rightmost_hex_digit(self, number):
-        popped_digit = number & 0xF 
-        number >>= 0x4
-        return popped_digit, number
-
-    '''Takes in a binary number and a digit to add, returns the number with the new digit'''
-    def add_rightmost_digit(number, digit_piece):
-        digit_piece >>= 1
-        updated_board = digit_piece | number 
-        return updated_board
-
     '''Takes in a hex number and a hex digit to add, returns the hex number with the new digit'''
     def add_rightmost_hex_digit(self, number, digit_piece):
         updated_board = (number << 4) | digit_piece
         return updated_board
-    
-    '''Takes in a hex number and a hex digit to add, returns the hex number with the new digit'''
-    def add_leftmost_hex_digit(self, number, digit_piece):
-        updated_board = (number << 4) | digit_piece
-        return updated_board
-    
-    '''Given a file and rank, returns a number between 0-63 representing the board location'''
-    def square_to_bit_position(self, file, rank):
-        return rank * 8 + file
 
     '''removed the piece at the given square from 0-63, ie converts the hex number at this square to 0'''
     def clear_piece(self, position):
@@ -136,74 +214,17 @@ class Board:
         hex_piece = piece << (square * 4)
         self.board = self.board | hex_piece
 
-    '''Given a board and a square, returns the hex number at the square'''
+    '''Given a board and a square, returns the hex number at the square
+    other returns the square on a board not self'''
     def get_piece_from_square(self, square, other=None):
         if other:
             return other >> (square * 4) & 0xF
         return self.board >> (square * 4) & 0xF
-
-    '''Given a board and a square, returns the hex number at the square'''
-    def get_piece_from_square_bin(self, square):
-        whole_mask = self.board >> (square) & 0b1
-        return whole_mask
-
-    '''extracts the 64th digit from the hex number 
-    STATE: value === 0 (WHITE) then white to move
-    STATE: value === 8 (BLACK) then black to move
-    STATE: value === 0 + 1 (WHITE + 1) then white checkmate
-    STATE: value === 8 + 1 (BLACK + 1) then black checkmate
-    '''
-    def get_color_to_move_bit(self):
-        return self.get_piece_from_square(self.COLOR_TO_MOVE)
     
-    def set_color_to_move_bit(self, num):
-        self.clear_piece(self.COLOR_TO_MOVE)
-        self.add_piece(self.COLOR_TO_MOVE, num)
+    def set_square(self, square, num):
+        self.clear_piece(square)
+        self.add_piece(square, num)
     
-    '''extracts the 65th digit from the hex number
-    STATE: 0b0001  represents king side castle WHITE
-    STATE: 0b0010 represents queen side castle WHITE
-    STATE: 0b0100 represents king side caslte BLACK
-    STATE: 0b1000 represents queen side caslte BLACK
-
-    All state values are 0 for available and 1 for not available
-    - if king moves, all state set to 1
-    - if rook moves on queen or king side, that state is set to 1
-    - 
-    '''
-    def get_castle_bits(self):
-        return self.get_piece_from_square(self.CASTLE_STATES)
-    
-    def set_castle_state(self, num):
-        self.clear_piece(self.CASTLE_STATES)
-        self.add_piece(self.CASTLE_STATES, num)
-
-    '''extracts the 66th digit from the hex number
-    the 66th digit will hold state 
-    value: 0 - NO EN passant
-    value: 1 - last move was a pawn that was moved 2
-    '''
-    def get_en_passant_state(self):
-        return self.get_piece_from_square(self.EN_PASSANT_STATE)
-    
-    def set_en_passant_state(self, num):
-        self.clear_piece(self.EN_PASSANT_STATE)
-        self.add_piece(self.EN_PASSANT_STATE, num)
-
-    '''this bit will hold the last piece that was moved stored in the 67th hex digit
-    helpful for en passant, if state en passant is 1, this will say if the last move is legal or not'''
-    def get_last_move_bits(self):
-        return self.get_piece_from_square(self.LAST_PIECE_MOVED)
-    
-    def set_last_move_bits(self, num):
-        self.clear_piece(self.LAST_PIECE_MOVED)
-        self.add_piece(self.LAST_PIECE_MOVED, num)
-
-    def pawn_moved_2():
-        print("not im")
-
-   
-
     '''
     Prints board state: for starting board 
     Game State: 0x0
@@ -222,10 +243,10 @@ class Board:
     2 3 4 5 6 4 3 2
     '''
     def print_game_state(self):
-        print("Game State: " + str(hex(self.get_color_to_move_bit())))
-        print("Castling State: " + str(bin(self.get_castle_bits())))
-        print("En Passant State: " + str(hex(self.get_en_passant_state())))
-        print("Last Move: " + str(hex(self.get_last_move_bits())))
+        print("Game State: " + str(hex(self.get_piece_from_square(self.COLOR_TO_MOVE))))
+        print("Castling State: " + str(bin(self.get_piece_from_square(self.CASTLE_STATES))))
+        print("En Passant State: " + str(hex(self.get_piece_from_square(self.EN_PASSANT_STATE))))
+        print("Last Move: " + str(hex(self.get_piece_from_square(self.LAST_PIECE_MOVED))))
 
         print_str = ''
         for i in range(7, -1, -1):  # Start from 7 and decrement to 0
@@ -272,55 +293,146 @@ class Board:
         print(string)
 
 
-    def knight_moves(self, bitboard):
+    def knight_moves(self, piece, start_square):
         new_boards = []
 
-        # Knight moves in all directions based on the knight's position
-        noNoEa = (bitboard << (17*4) ) & self.NOT_A_FILE 
-        noEaEa = (bitboard << (10*4)) & self.NOT_AB_FILE
-        soEaEa = (bitboard >>  (6*4)) & self.NOT_AB_FILE
-        soSoEa = (bitboard >> (15*4)) & self.NOT_A_FILE 
-        noNoWe = (bitboard << (15*4)) & self.NOT_H_FILE 
-        noWeWe = (bitboard <<  (6*4)) & self.NOT_GH_FILE
-        soWeWe = (bitboard >> (10*4)) & self.NOT_GH_FILE
-        soSoWe = (bitboard >> (17*4)) & self.NOT_H_FILE 
+        bitboard = piece << (start_square * 4) 
+        clear = 0xF << (start_square * 4)
+
+        noNoEa = self.noNoEa(bitboard)
+        noEaEa = self.noEaEa(bitboard)
+        soEaEa = self.soEaEa(bitboard)
+        soSoEa = self.soSoEa(bitboard)
+        noNoWe = self.noNoWe(bitboard)
+        noWeWe = self.noWeWe(bitboard)
+        soWeWe = self.soWeWe(bitboard)
+        soSoWe = self.soSoWe(bitboard)
+
+        noNoEa_clear = self.noNoEa(clear)
+        noEaEa_clear = self.noEaEa(clear)
+        soEaEa_clear = self.soEaEa(clear)
+        soSoEa_clear = self.soSoEa(clear)
+        noNoWe_clear = self.noNoWe(clear)
+        noWeWe_clear = self.noWeWe(clear)
+        soWeWe_clear = self.soWeWe(clear)
+        soSoWe_clear = self.soSoWe(clear)
 
         valid_moves = noNoEa | noEaEa | soEaEa | soSoEa | noNoWe | noWeWe | soWeWe | soSoWe
 
-        if self.get_color_to_move_bit() == self.WHITE:
-            valid_moves = valid_moves & ~self.whitePiece  # Exclude friendly pieces
-            valid_moves = valid_moves | (valid_moves & self.blackPiece)  # Include enemy pieces (captures)
+        if self.get_piece_from_square(self.COLOR_TO_MOVE) == self.WHITE:
+            valid_moves = valid_moves & ~self.whitePiece 
+            valid_moves = valid_moves | (valid_moves & self.blackPiece) 
         else:
-            valid_moves = valid_moves & ~self.blackPiece  # Exclude friendly pieces
-            valid_moves = valid_moves | (valid_moves & self.whitePiece)  # Include enemy pieces (captures)
+            valid_moves = valid_moves & ~self.blackPiece 
+            valid_moves = valid_moves | (valid_moves & self.whitePiece) 
 
-        past_move = self.WHITE | self.KNIGHT if self.get_color_to_move_bit() == self.WHITE else self.BLACK | self.KNIGHT
-        next_to_move = self.BLACK if self.get_color_to_move_bit() == self.WHITE else self.WHITE
+        past_move = self.WHITE | self.KNIGHT if self.get_piece_from_square(self.COLOR_TO_MOVE) == self.WHITE else self.BLACK | self.KNIGHT
+        next_to_move = self.BLACK if self.get_piece_from_square(self.COLOR_TO_MOVE) == self.WHITE else self.WHITE
 
         if noNoEa & valid_moves:
-            new_boards.append(Board((self.board ^ bitboard) | noNoEa, next_to_move, past_move))
+            new_boards.append(Board(((self.board ^ bitboard)& ~noNoEa_clear ) | noNoEa, next_to_move, past_move))
  
         if noEaEa & valid_moves: 
-            new_boards.append(Board((self.board ^ bitboard) | noEaEa,next_to_move, past_move))
+            new_boards.append(Board(((self.board ^ bitboard)& ~noEaEa_clear ) | noEaEa,next_to_move, past_move))
 
         if soEaEa & valid_moves: 
-            new_boards.append(Board((self.board ^ bitboard) | soEaEa,next_to_move, past_move))
+            new_boards.append(Board(((self.board ^ bitboard)& ~soEaEa_clear ) | soEaEa,next_to_move, past_move))
  
         if soSoEa & valid_moves: 
-            new_boards.append(Board((self.board ^ bitboard) | soSoEa,next_to_move, past_move))
+            new_boards.append(Board(((self.board ^ bitboard)& ~soSoEa_clear ) | soSoEa,next_to_move, past_move))
 
         if noNoWe & valid_moves: 
-            new_boards.append(Board((self.board ^ bitboard) | noNoWe,next_to_move, past_move))
+            new_boards.append(Board(((self.board ^ bitboard)& ~noNoWe_clear ) | noNoWe,next_to_move, past_move))
  
         if noWeWe & valid_moves: 
-            new_boards.append(Board((self.board ^ bitboard) | noWeWe,next_to_move, past_move))
+            new_boards.append(Board(((self.board ^ bitboard)&  ~noWeWe_clear ) | noWeWe,next_to_move, past_move))
 
         if soWeWe & valid_moves: 
-            new_boards.append(Board((self.board ^ bitboard) | soWeWe,next_to_move, past_move))
+            new_boards.append(Board(((self.board ^ bitboard)& ~soWeWe_clear ) | soWeWe,next_to_move, past_move))
 
         if soSoWe & valid_moves: 
-            new_boards.append(Board((self.board ^ bitboard) | soSoWe,next_to_move, past_move))
+            new_boards.append(Board(((self.board ^ bitboard)& ~soSoWe_clear ) | soSoWe,next_to_move, past_move))
 
+        return new_boards
+    
+
+    def pawn_moves_white(self, piece, start_square):
+        new_boards = []
+
+        bitboard = piece << (start_square * 4) 
+        clear = 0xF << (start_square * 4)
+
+        nortOne =  self.nortOne(bitboard) & ~self.whitePiece & ~self.blackPiece
+        nortOne_clear = self.nortOne(clear) & ~self.whitePiece & ~self.blackPiece
+        
+        noWeOne = self.noWeOne(bitboard) & self.NOT_H_FILE & ~self.whitePiece & self.blackPiece
+        noEaOne = self.noEaOne(bitboard) & self.NOT_A_FILE & ~self.whitePiece & self.blackPiece
+
+        noWeOne_clear = self.noWeOne(clear) & self.NOT_H_FILE & ~self.whitePiece & self.blackPiece
+        noEaOne_clear = self.noEaOne(clear) & self.NOT_A_FILE & ~self.whitePiece & self.blackPiece
+
+        valid_moves = nortOne | noWeOne | noEaOne
+        past_move = self.WHITE | self.PAWN 
+        next_to_move = self.BLACK
+
+         # En passant Logic NEEDED
+         # if last move is a pawn that moved 2 squares and this pawn is on square 32-39
+
+        if (start_square >= 8 and start_square <= 15 and nortOne):
+            nortTwo = self.nortOne(nortOne) & ~self.whitePiece & ~self.blackPiece
+            if nortTwo:
+                nortTwo_clear = self.nortOne(nortOne_clear) & ~self.whitePiece & ~self.blackPiece
+                new_boards.append(Board(((self.board ^ bitboard) & ~nortTwo_clear) | nortTwo, next_to_move, past_move))
+
+        if noWeOne & valid_moves: 
+            new_boards.append(Board(((self.board ^ bitboard) & ~noWeOne_clear) | noWeOne, next_to_move, past_move))
+
+        if noEaOne & valid_moves:
+            new_boards.append(Board(((self.board ^ bitboard) & ~noEaOne_clear) | noEaOne, next_to_move, past_move))
+
+        if nortOne & valid_moves:
+            new_boards.append(Board(((self.board ^ bitboard) & ~nortOne_clear) | nortOne, next_to_move, past_move))
+       
+        return new_boards
+    
+    
+    def pawn_moves_black(self, piece, start_square):
+        new_boards = []
+
+        bitboard = piece << (start_square * 4) 
+        clear = 0xF << (start_square * 4)
+
+        soutOne = self.soutOne(bitboard) & ~self.whitePiece & ~self.blackPiece
+        soutOne_clear = self.soutOne(clear) & ~self.whitePiece & ~self.blackPiece
+        
+        soWeOne = self.soWeOne(bitboard) & self.NOT_H_FILE & ~self.blackPiece & self.whitePiece
+        soEaOne = self.soEaOne(bitboard) & self.NOT_A_FILE & ~self.blackPiece & self.whitePiece
+
+        soWeOne_clear = self.soWeOne(clear) & self.NOT_H_FILE & ~self.blackPiece & self.whitePiece
+        soEaOne_clear = self.soEaOne(clear) & self.NOT_A_FILE & ~self.blackPiece & self.whitePiece
+
+        valid_moves = soutOne | soWeOne | soEaOne
+        past_move = self.BLACK | self.PAWN 
+        next_to_move = self.WHITE
+
+        # En passant Logic NEEDED
+         # if last move is a pawn that moved 2 squares and this pawn is on square 24-31
+
+        if (start_square >= 48 and start_square <= 55 and soutOne):
+            soutTwo = self.soutOne(soutOne) & ~self.whitePiece & ~self.blackPiece
+            if soutTwo:
+                soutTwo_clear = self.soutOne(soutOne_clear) & ~self.whitePiece & ~self.blackPiece
+                new_boards.append(Board(((self.board ^ bitboard) & ~soutTwo_clear) | soutTwo, next_to_move, past_move))
+
+        if soWeOne & valid_moves: 
+            new_boards.append(Board(((self.board ^ bitboard) & ~soWeOne_clear) | soWeOne, next_to_move, past_move))
+
+        if soEaOne & valid_moves:
+            new_boards.append(Board(((self.board ^ bitboard) & ~soEaOne_clear) | soEaOne, next_to_move, past_move))
+
+        if soutOne & valid_moves:
+            new_boards.append(Board(((self.board ^ bitboard) & ~soutOne_clear) | soutOne, next_to_move, past_move))
+       
         return new_boards
 
 
@@ -330,10 +442,10 @@ class Board:
     def get_all_possible_next_board_states(self):
         pos_moves = 0
 
-        color_to_move = self.get_color_to_move_bit()
-        castle_rights = self.get_castle_bits()
-        en_passant_state = self.get_en_passant_state()
-        last_move = self.get_last_move_bits()
+        color_to_move = self.get_piece_from_square(self.COLOR_TO_MOVE)
+        castle_rights = self.get_piece_from_square(self.CASTLE_STATES)
+        en_passant_state = self.get_piece_from_square(self.COLOR_TO_MOVE)
+        last_move = self.get_piece_from_square(self.COLOR_TO_MOVE)
 
         all_pos_states = []
 
@@ -343,13 +455,22 @@ class Board:
             color = square & self.COLOR_MASK
 
 
-            if color != color_to_move or square == 0:
+            # if color != color_to_move or square == 0:
+            #     pass
+            if piece == self.KNIGHT:
+                # all_pos_states += self.knight_moves(square, i)
                 pass
-            elif piece == self.KNIGHT:
-                all_pos_states += self.knight_moves(square << (i * 4))
+            elif square == self.PAWN | self.WHITE:
+                # all_pos_states += self.pawn_moves_white(square, i)
+                pass
+            elif square == self.PAWN | self.BLACK:
+                # print('here')
+                all_pos_states += self.pawn_moves_black(square, i)
 
 
-        print([hex(move.board) for move in all_pos_states])
+        for move in all_pos_states:
+            move.print_board_hex()
+
 
         
 
@@ -362,6 +483,7 @@ def main():
     # print(get_all_possible_next_board_states(board, white_pieces, black_pieces))
 
     board.get_all_possible_next_board_states()
+    # board.number_board()
 
 
 
