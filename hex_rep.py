@@ -69,6 +69,11 @@ class Board:
     # LAST_END_SQUARE = 67
 
     ALL_DEFINED = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+    
+    NOT_RANK_1 = ~0x00000000000000000000000000000000000000000000000000000000ffffffff
+    NOT_RANK_8 = ~0xffffffff00000000000000000000000000000000000000000000000000000000
+
+
 
     @staticmethod
     def noNoEa(x):
@@ -103,12 +108,12 @@ class Board:
         return (x >> (17 * 4)) & Board.NOT_H_FILE
     
     @staticmethod
-    def soutOne(b):
-        return b >> (8 * 4)
-
-    @staticmethod
     def nortOne(b):
         return b << (8 * 4)
+    
+    @staticmethod
+    def soutOne(b):
+        return b >> (8 * 4)
 
     @staticmethod
     def eastOne(b):
@@ -149,8 +154,81 @@ class Board:
             # self.getStartPos()
 
         self.whitePiece, self.blackPiece = self.getWhiteBlackMasks()
+        self.attack_squares = 0x0
+        self.next_boards = []
+        self.special_board_states: list[dict] = [] 
 
     def testPos(self):
+        self.board = 0x0
+        self.add_piece(0, self.WHITE | self.ROOK)
+        self.add_piece( 1, self.WHITE | self.KNIGHT)
+        # self.add_piece( 2, self.WHITE | self.BISHOP)
+        self.add_piece( 3, self.WHITE | self.QUEEN)
+        self.add_piece( 4, self.WHITE | self.KING)
+        # self.add_piece( 5, self.WHITE | self.BISHOP)
+        self.add_piece( 6, self.WHITE | self.KNIGHT)
+        self.add_piece( 7, self.WHITE | self.ROOK)
+        self.add_piece(32, self.WHITE | self.PAWN)
+        self.add_piece(39, self.WHITE | self.PAWN)
+        self.add_piece( 35, self.WHITE | self.BISHOP)
+
+        
+        # for i in range(8, 16):
+        #     self.add_piece( i, self.WHITE | self.PAWN)
+        # for i in range(48, 56):
+        #     self.add_piece( i, self.BLACK | self.PAWN)
+        self.add_piece( 56, self.BLACK | self.ROOK)
+        self.add_piece( 57, self.BLACK | self.KNIGHT)
+        self.add_piece( 58, self.BLACK | self.BISHOP)
+        self.add_piece( 59, self.BLACK | self.QUEEN)
+        # self.add_piece( 60, self.BLACK | self.KING)
+        self.add_piece( 61, self.BLACK | self.BISHOP)
+        self.add_piece( 62, self.BLACK | self.KNIGHT)
+        self.add_piece( 63, self.BLACK | self.ROOK)
+        
+        # self.add_piece( 33, self.WHITE | self.KNIGHT)
+        self.add_piece( 44, self.WHITE | self.ROOK)
+
+        self.color_to_move = 0x0
+        self.last_end_square = 0x0
+        self.castle_states = 0x0
+        self.can_en_passant= 0x0
+
+    def slidingTest(self):
+        self.board = 0x0
+        self.add_piece(0, self.WHITE | self.ROOK)
+        self.add_piece( 1, self.WHITE | self.KNIGHT)
+        self.add_piece( 2, self.WHITE | self.BISHOP)
+        self.add_piece( 3, self.WHITE | self.QUEEN)
+        self.add_piece( 4, self.WHITE | self.KING)
+        self.add_piece( 5, self.WHITE | self.BISHOP)
+        self.add_piece( 6, self.WHITE | self.KNIGHT)
+        self.add_piece( 7, self.WHITE | self.ROOK)
+        self.add_piece(32, self.WHITE | self.PAWN)
+        self.add_piece(39, self.WHITE | self.PAWN)
+        
+        # for i in range(8, 16):
+        #     self.add_piece( i, self.WHITE | self.PAWN)
+        for i in range(48, 56):
+            self.add_piece( i, self.BLACK | self.PAWN)
+        self.add_piece( 56, self.BLACK | self.ROOK)
+        self.add_piece( 57, self.BLACK | self.KNIGHT)
+        self.add_piece( 58, self.BLACK | self.BISHOP)
+        self.add_piece( 59, self.BLACK | self.QUEEN)
+        self.add_piece( 60, self.BLACK | self.KING)
+        self.add_piece( 61, self.BLACK | self.BISHOP)
+        self.add_piece( 62, self.BLACK | self.KNIGHT)
+        self.add_piece( 63, self.BLACK | self.ROOK)
+        
+        # self.add_piece( 33, self.WHITE | self.KNIGHT)
+        self.add_piece( 36, self.WHITE | self.ROOK)
+
+        self.color_to_move = 0x0
+        self.last_end_square = 0x0
+        self.castle_states = 0x0
+        self.can_en_passant= 0x0
+
+    def testEnPassant(self):
         self.board = 0x0
         self.add_piece(0, self.WHITE | self.ROOK)
         self.add_piece( 1, self.WHITE | self.KNIGHT)
@@ -223,6 +301,8 @@ class Board:
             else: 
                 whiteMask = self.add_rightmost_hex_digit(whiteMask, 0x0)
                 blackMask = self.add_rightmost_hex_digit(blackMask, 0x0)
+
+        # print(hex(whiteMask), hex(blackMask))
 
         return whiteMask, blackMask
 
@@ -365,32 +445,42 @@ class Board:
             valid_moves = valid_moves & ~self.blackPiece 
             valid_moves = valid_moves | (valid_moves & self.whitePiece) 
 
+        # print(hex(valid_moves))
+
         # past_move = self.WHITE | self.KNIGHT if self.get_piece_from_square(self.COLOR_TO_MOVE) == self.WHITE else self.BLACK | self.KNIGHT
         next_to_move = self.BLACK if self.color_to_move == self.WHITE else self.WHITE
 
         if noNoEa & valid_moves:
-            new_boards.append(Board(((self.board ^ bitboard)& ~noNoEa_clear ) | noNoEa, next_to_move))
+            new_boards.append(board(((self.board ^ bitboard)& ~noNoEa_clear ) | noNoEa, next_to_move))
+            self.attack_squares = self.attack_squares | noNoEa_clear
  
         if noEaEa & valid_moves: 
-            new_boards.append(Board(((self.board ^ bitboard)& ~noEaEa_clear ) | noEaEa,next_to_move))
+            new_boards.append(board(((self.board ^ bitboard)& ~noEaEa_clear ) | noEaEa,next_to_move))
+            self.attack_squares = self.attack_squares | noEaEa_clear
 
         if soEaEa & valid_moves: 
-            new_boards.append(Board(((self.board ^ bitboard)& ~soEaEa_clear ) | soEaEa,next_to_move))
+            new_boards.append(board(((self.board ^ bitboard)& ~soEaEa_clear ) | soEaEa,next_to_move))
+            self.attack_squares = self.attack_squares | soEaEa_clear
  
         if soSoEa & valid_moves: 
-            new_boards.append(Board(((self.board ^ bitboard)& ~soSoEa_clear ) | soSoEa,next_to_move))
+            new_boards.append(board(((self.board ^ bitboard)& ~soSoEa_clear ) | soSoEa,next_to_move))
+            self.attack_squares = self.attack_squares | soSoEa_clear
 
         if noNoWe & valid_moves: 
-            new_boards.append(Board(((self.board ^ bitboard)& ~noNoWe_clear ) | noNoWe,next_to_move))
+            new_boards.append(board(((self.board ^ bitboard)& ~noNoWe_clear ) | noNoWe,next_to_move))
+            self.attack_squares = self.attack_squares | noNoWe_clear
  
         if noWeWe & valid_moves: 
-            new_boards.append(Board(((self.board ^ bitboard)&  ~noWeWe_clear ) | noWeWe,next_to_move))
+            new_boards.append(board(((self.board ^ bitboard)&  ~noWeWe_clear ) | noWeWe,next_to_move))
+            self.attack_squares = self.attack_squares | noWeWe_clear
 
         if soWeWe & valid_moves: 
-            new_boards.append(Board(((self.board ^ bitboard)& ~soWeWe_clear ) | soWeWe,next_to_move))
+            new_boards.append(board(((self.board ^ bitboard)& ~soWeWe_clear ) | soWeWe,next_to_move))
+            self.attack_squares = self.attack_squares | soWeWe_clear
 
         if soSoWe & valid_moves: 
-            new_boards.append(Board(((self.board ^ bitboard)& ~soSoWe_clear ) | soSoWe,next_to_move))
+            new_boards.append(board(((self.board ^ bitboard)& ~soSoWe_clear ) | soSoWe,next_to_move))
+            self.attack_squares = self.attack_squares | soSoWe_clear
 
         return new_boards
     
@@ -410,37 +500,44 @@ class Board:
         noWeOne_clear = self.noWeOne(clear) & self.NOT_H_FILE & ~self.whitePiece & self.blackPiece
         noEaOne_clear = self.noEaOne(clear) & self.NOT_A_FILE & ~self.whitePiece & self.blackPiece
 
-        valid_moves = nortOne | noWeOne | noEaOne
-        past_move = self.WHITE | self.PAWN 
         next_to_move = self.BLACK
 
         if self.can_en_passant:
             last_end = self.last_end_square
 
-            print(last_end, start_square)
+            # print(last_end, start_square)
             if last_end >= 32 and last_end <= 39 and start_square >= 32 and start_square <= 39:
-                print('in')
+                # print('in')
 
                 if last_end == start_square - 1:
-                    new_boards.append(Board((((self.board ^ bitboard)) | self.noWeOne(bitboard)) & ~(0xF << (last_end * 4)), next_to_move))
+                    new_boards.append(board((((self.board ^ bitboard)) | self.noWeOne(bitboard)) & ~(0xF << (last_end * 4)), next_to_move))
+                    self.attack_squares = self.attack_squares | self.noWeOne(clear)
                 if last_end == start_square + 1:
-                    new_boards.append(Board((((self.board ^ bitboard)) | self.noEaOne(bitboard)) & ~(0xF << (last_end * 4)), next_to_move))
+                    new_boards.append(board((((self.board ^ bitboard)) | self.noEaOne(bitboard)) & ~(0xF << (last_end * 4)), next_to_move))
+                    self.attack_squares = self.attack_squares | self.noEaOne(clear)
+
 
         if (start_square >= 8 and start_square <= 15 and nortOne):
             nortTwo = self.nortOne(nortOne) & ~self.whitePiece & ~self.blackPiece
             if nortTwo:
                 nortTwo_clear = self.nortOne(nortOne_clear) & ~self.whitePiece & ~self.blackPiece
                 # print(self.get_square_from_piece(nortTwo_clear))
-                new_boards.append(Board(((self.board ^ bitboard) & ~nortTwo_clear) | nortTwo, next_to_move, self.get_square_from_piece(nortTwo_clear), 1))
+                new_boards.append(board(((self.board ^ bitboard) & ~nortTwo_clear) | nortTwo, next_to_move, self.get_square_from_piece(nortTwo_clear), 1))
 
-        if noWeOne & valid_moves: 
-            new_boards.append(Board(((self.board ^ bitboard) & ~noWeOne_clear) | noWeOne, next_to_move))
+        if noWeOne: 
+            new_boards.append(board(((self.board ^ bitboard) & ~noWeOne_clear) | noWeOne, next_to_move))
+            # self.attack_squares = self.attack_squares | noWeOne_clear
 
-        if noEaOne & valid_moves:
-            new_boards.append(Board(((self.board ^ bitboard) & ~noEaOne_clear) | noEaOne, next_to_move))
+        if noEaOne:
+            new_boards.append(board(((self.board ^ bitboard) & ~noEaOne_clear) | noEaOne, next_to_move))
+            # self.attack_squares = self.attack_squares | noEaOne_clear
 
-        if nortOne & valid_moves:
-            new_boards.append(Board(((self.board ^ bitboard) & ~nortOne_clear) | nortOne, next_to_move))
+        if nortOne:
+            new_boards.append(board(((self.board ^ bitboard) & ~nortOne_clear) | nortOne, next_to_move))
+            # self.attack_squares = self.attack_squares | nortOne_clear
+
+        self.attack_squares = self.attack_squares | self.noWeOne(clear)
+        self.attack_squares = self.attack_squares | self.noEaOne(clear)
        
         return new_boards
     
@@ -460,7 +557,6 @@ class Board:
         soWeOne_clear = self.soWeOne(clear) & self.NOT_H_FILE & ~self.blackPiece & self.whitePiece
         soEaOne_clear = self.soEaOne(clear) & self.NOT_A_FILE & ~self.blackPiece & self.whitePiece
 
-        valid_moves = soutOne | soWeOne | soEaOne
         next_to_move = self.WHITE
 
         if self.can_en_passant:
@@ -468,25 +564,34 @@ class Board:
 
             if last_end >= 24 and last_end <= 31 and start_square >= 24 and start_square <= 31:
                 if last_end == start_square - 1:
-                    new_boards.append(Board((((self.board ^ bitboard)) | self.soWeOne(bitboard)) & ~(0xF << (last_end * 4)), next_to_move))
+                    new_boards.append(board((((self.board ^ bitboard)) | self.soWeOne(bitboard)) & ~(0xF << (last_end * 4)), next_to_move))
+                    self.attack_squares = self.attack_squares | self.soWeOne(clear)
                 if last_end == start_square + 1:
-                    new_boards.append(Board((((self.board ^ bitboard)) | self.soEaOne(bitboard)) & ~(0xF << (last_end * 4)), next_to_move))
+                    new_boards.append(board((((self.board ^ bitboard)) | self.soEaOne(bitboard)) & ~(0xF << (last_end * 4)), next_to_move))
+                    self.attack_squares = self.attack_squares | self.soEaOne(clear)
 
         if (start_square >= 48 and start_square <= 55 and soutOne):
             soutTwo = self.soutOne(soutOne) & ~self.whitePiece & ~self.blackPiece
             if soutTwo:
                 soutTwo_clear = self.soutOne(soutOne_clear) & ~self.whitePiece & ~self.blackPiece
-                new_boards.append(Board(((self.board ^ bitboard) & ~soutTwo_clear) | soutTwo, next_to_move, self.get_square_from_piece(soutTwo_clear), 1))
+                new_boards.append(board(((self.board ^ bitboard) & ~soutTwo_clear) | soutTwo, next_to_move, self.get_square_from_piece(soutTwo_clear), 1))
 
-        if soWeOne & valid_moves: 
-            new_boards.append(Board(((self.board ^ bitboard) & ~soWeOne_clear) | soWeOne, next_to_move))
+        if soWeOne: 
+            new_boards.append(board(((self.board ^ bitboard) & ~soWeOne_clear) | soWeOne, next_to_move))
+            # self.attack_squares = self.attack_squares | soWeOne_clear
 
-        if soEaOne & valid_moves:
-            print(hex((self.board ^ bitboard) & ~soEaOne_clear | soEaOne))
-            new_boards.append(Board(((self.board ^ bitboard) & ~soEaOne_clear) | soEaOne, next_to_move))
+        if soEaOne:
+            new_boards.append(board(((self.board ^ bitboard) & ~soEaOne_clear) | soEaOne, next_to_move))
+            # self.attack_squares = self.attack_squares | soEaOne_clear
 
-        if soutOne & valid_moves:
-            new_boards.append(Board(((self.board ^ bitboard) & ~soutOne_clear) | soutOne, next_to_move))
+        if soutOne:
+            new_boards.append(board(((self.board ^ bitboard) & ~soutOne_clear) | soutOne, next_to_move))
+            # self.attack_squares = self.attack_squares | soutOne_clear
+
+        self.attack_squares = self.attack_squares | self.soWeOne(clear)
+        self.attack_squares = self.attack_squares | self.soEaOne(clear)
+
+
        
         return new_boards
     
@@ -499,34 +604,246 @@ class Board:
         nortOne_clear = self.nortOne(clear)
 
         next_to_move = self.BLACK if self.color_to_move == self.WHITE else self.WHITE
+                
+        not_blocked = nortOne_clear & self.whitePiece == 0 if color_to_move == self.WHITE else nortOne_clear & self.blackPiece == 0 
 
+        opposite_taken = False
+        
+        while nortOne_clear & self.NOT_RANK_8 and not_blocked and not opposite_taken:
+            new_boards.append(board(((self.board ^ bitboard) & ~nortOne_clear) | nortOne, next_to_move))
+            self.attack_squares = self.attack_squares | nortOne_clear
 
-        while (nortOne_clear | self.board) != 0: #& self.PIECE_MASK != self.BLACK:
-            new_boards.append(Board(((self.board ^ bitboard) & ~nortOne_clear) | nortOne, next_to_move))
-
+            opposite_taken = nortOne_clear & self.blackPiece != 0 if color_to_move == self.WHITE else nortOne_clear & self.whitePiece != 0
             nortOne =  self.nortOne(nortOne)
             nortOne_clear = self.nortOne(nortOne_clear)
+            not_blocked = nortOne_clear & self.whitePiece == 0 if color_to_move == self.WHITE else nortOne_clear & self.blackPiece == 0
+
+        if nortOne_clear & ~self.NOT_RANK_8 and not_blocked and not opposite_taken:
+            new_boards.append(board(((self.board ^ bitboard) & ~nortOne_clear) | nortOne, next_to_move))
+            self.attack_squares = self.attack_squares | nortOne_clear
 
         return new_boards
 
-        # if color_to_move == self.WHITE:
-        #     nortOne =  nortOne  & ~self.whitePiece & self.blackPiece
-        #     nortOne_clear = nortOne_clear & ~self.whitePiece & self.blackPiece
-        # else: 
-        #     nortOne =  nortOne  & self.whitePiece & ~self.blackPiece
-        #     nortOne_clear = nortOne_clear & self.whitePiece & ~self.blackPiece
+
+    def getSoSlide(self, bitboard, clear):
+        new_boards = []
+
+        color_to_move = self.color_to_move
+
+        soutOne =  self.soutOne(bitboard)
+        soutOne_clear = self.soutOne(clear)
+
+        next_to_move = self.BLACK if self.color_to_move == self.WHITE else self.WHITE
+                
+        not_blocked = soutOne_clear & self.whitePiece == 0 if color_to_move == self.WHITE else soutOne_clear & self.blackPiece == 0 
+
+        opposite_taken = False
+        
+        while soutOne_clear & self.NOT_RANK_1 and not_blocked and not opposite_taken:
+            new_boards.append(board(((self.board ^ bitboard) & ~soutOne_clear) | soutOne, next_to_move))
+            self.attack_squares = self.attack_squares | soutOne_clear
+
+            opposite_taken = soutOne_clear & self.blackPiece != 0 if color_to_move == self.WHITE else soutOne_clear & self.whitePiece != 0
+            soutOne =  self.soutOne(soutOne)
+            soutOne_clear = self.soutOne(soutOne_clear)
+            not_blocked = soutOne_clear & self.whitePiece == 0 if color_to_move == self.WHITE else soutOne_clear & self.blackPiece == 0
+
+        if soutOne_clear & ~self.NOT_RANK_1 and not_blocked and not opposite_taken:
+            new_boards.append(board(((self.board ^ bitboard) & ~soutOne_clear) | soutOne, next_to_move))
+            self.attack_squares = self.attack_squares | soutOne_clear
+
+        return new_boards
 
 
-    def getSoSlide(self):
-        pass
+    def getEaSlide(self, bitboard, clear):
+        new_boards = []
 
-    def getEaSlide(self):
-        pass
+        color_to_move = self.color_to_move
 
-    def getWeSlide(self):
-        pass
+        eastOne =  self.eastOne(bitboard)
+        eastOne_clear = self.eastOne(clear)
 
+        next_to_move = self.BLACK if self.color_to_move == self.WHITE else self.WHITE
+                
+        not_blocked = eastOne_clear & self.whitePiece == 0 if color_to_move == self.WHITE else eastOne_clear & self.blackPiece == 0 
+
+        opposite_taken = False
+        
+        while eastOne_clear & self.NOT_H_FILE and not_blocked and not opposite_taken:
+            new_boards.append(board(((self.board ^ bitboard) & ~eastOne_clear) | eastOne, next_to_move))
+            self.attack_squares = self.attack_squares | eastOne_clear
+
+            opposite_taken = eastOne_clear & self.blackPiece != 0 if color_to_move == self.WHITE else eastOne_clear & self.whitePiece != 0
+            eastOne =  self.eastOne(eastOne)
+            eastOne_clear = self.eastOne(eastOne_clear)
+            not_blocked = eastOne_clear & self.whitePiece == 0 if color_to_move == self.WHITE else eastOne_clear & self.blackPiece == 0
+
+        if eastOne_clear & ~self.NOT_H_FILE and not_blocked and not opposite_taken:
+            new_boards.append(board(((self.board ^ bitboard) & ~eastOne_clear) | eastOne, next_to_move))
+            self.attack_squares = self.attack_squares | eastOne_clear
+
+        return new_boards
+
+
+    def getWeSlide(self, bitboard, clear):
+        new_boards = []
+
+        color_to_move = self.color_to_move
+
+        westOne =  self.westOne(bitboard)
+        westOne_clear = self.westOne(clear)
+
+        next_to_move = self.BLACK if self.color_to_move == self.WHITE else self.WHITE
+                
+        not_blocked = westOne_clear & self.whitePiece == 0 if color_to_move == self.WHITE else westOne_clear & self.blackPiece == 0 
+
+        opposite_taken = False
+        
+        while westOne_clear & self.NOT_A_FILE and not_blocked and not opposite_taken:
+            new_boards.append(board(((self.board ^ bitboard) & ~westOne_clear) | westOne, next_to_move))
+            self.attack_squares = self.attack_squares | westOne_clear
+
+            opposite_taken = westOne_clear & self.blackPiece != 0 if color_to_move == self.WHITE else westOne_clear & self.whitePiece != 0
+            westOne =  self.westOne(westOne)
+            westOne_clear = self.westOne(westOne_clear)
+            not_blocked = westOne_clear & self.whitePiece == 0 if color_to_move == self.WHITE else westOne_clear & self.blackPiece == 0
+
+        if westOne_clear & ~self.NOT_A_FILE and not_blocked and not opposite_taken:
+            new_boards.append(board(((self.board ^ bitboard) & ~westOne_clear) | westOne, next_to_move))
+            self.attack_squares = self.attack_squares | westOne_clear
+
+        return new_boards
     
+    
+    def getNoEaSlide(self, bitboard, clear):
+        new_boards = []
+
+        color_to_move = self.color_to_move
+        next_to_move = self.BLACK if self.color_to_move == self.WHITE else self.WHITE
+
+        noEaOne =  self.noEaOne(bitboard)
+        noEaOne_clear = self.noEaOne(clear)
+    
+        not_blocked = noEaOne_clear & self.whitePiece == 0 if color_to_move == self.WHITE else noEaOne_clear & self.blackPiece == 0 
+
+        opposite_taken = False
+        
+        while noEaOne_clear & self.NOT_RANK_8 and noEaOne_clear & self.NOT_H_FILE and not_blocked and not opposite_taken:
+            new_boards.append(board(((self.board ^ bitboard) & ~noEaOne_clear) | noEaOne, next_to_move))
+            self.attack_squares = self.attack_squares | noEaOne_clear
+
+            opposite_taken = noEaOne_clear & self.blackPiece != 0 if color_to_move == self.WHITE else noEaOne_clear & self.whitePiece != 0
+            noEaOne =  self.noEaOne(noEaOne)
+            noEaOne_clear = self.noEaOne(noEaOne_clear)
+            not_blocked = noEaOne_clear & self.whitePiece == 0 if color_to_move == self.WHITE else noEaOne_clear & self.blackPiece == 0
+
+        if noEaOne_clear & ~self.NOT_RANK_8 and not_blocked and not opposite_taken:
+            new_boards.append(board(((self.board ^ bitboard) & ~noEaOne_clear) | noEaOne, next_to_move))
+            self.attack_squares = self.attack_squares | noEaOne_clear
+
+        if noEaOne_clear & ~self.NOT_H_FILE and not_blocked and not opposite_taken:
+            new_boards.append(board(((self.board ^ bitboard) & ~noEaOne_clear) | noEaOne, next_to_move))
+            self.attack_squares = self.attack_squares | noEaOne_clear
+
+        return new_boards
+    
+    def getNoWeSlide(self, bitboard, clear):
+        new_boards = []
+
+        color_to_move = self.color_to_move
+        next_to_move = self.BLACK if self.color_to_move == self.WHITE else self.WHITE
+
+        noWeOne =  self.noWeOne(bitboard)
+        noWeOne_clear = self.noWeOne(clear)
+    
+        not_blocked = noWeOne_clear & self.whitePiece == 0 if color_to_move == self.WHITE else noWeOne_clear & self.blackPiece == 0 
+
+        opposite_taken = False
+        
+        while noWeOne_clear & self.NOT_RANK_8 and noWeOne_clear & self.NOT_A_FILE and not_blocked and not opposite_taken:
+            new_boards.append(board(((self.board ^ bitboard) & ~noWeOne_clear) | noWeOne, next_to_move))
+            self.attack_squares = self.attack_squares | noWeOne_clear
+
+            opposite_taken = noWeOne_clear & self.blackPiece != 0 if color_to_move == self.WHITE else noWeOne_clear & self.whitePiece != 0
+            noWeOne =  self.noWeOne(noWeOne)
+            noWeOne_clear = self.noWeOne(noWeOne_clear)
+            not_blocked = noWeOne_clear & self.whitePiece == 0 if color_to_move == self.WHITE else noWeOne_clear & self.blackPiece == 0
+
+        if noWeOne_clear & ~self.NOT_RANK_8 and not_blocked and not opposite_taken:
+            new_boards.append(board(((self.board ^ bitboard) & ~noWeOne_clear) | noWeOne, next_to_move))
+            self.attack_squares = self.attack_squares | noWeOne_clear
+
+        if noWeOne_clear & ~self.NOT_A_FILE and not_blocked and not opposite_taken:
+            new_boards.append(board(((self.board ^ bitboard) & ~noWeOne_clear) | noWeOne, next_to_move))
+            self.attack_squares = self.attack_squares | noWeOne_clear
+
+        return new_boards
+    
+    def getSoEaSlide(self, bitboard, clear):
+        new_boards = []
+
+        color_to_move = self.color_to_move
+        next_to_move = self.BLACK if self.color_to_move == self.WHITE else self.WHITE
+
+        soEaOne =  self.soEaOne(bitboard)
+        soEaOne_clear = self.soEaOne(clear)
+    
+        not_blocked = soEaOne_clear & self.whitePiece == 0 if color_to_move == self.WHITE else soEaOne_clear & self.blackPiece == 0 
+
+        opposite_taken = False
+        
+        while soEaOne_clear & self.NOT_RANK_1 and soEaOne_clear & self.NOT_H_FILE and not_blocked and not opposite_taken:
+            new_boards.append(board(((self.board ^ bitboard) & ~soEaOne_clear) | soEaOne, next_to_move))
+            self.attack_squares = self.attack_squares | soEaOne_clear
+
+            opposite_taken = soEaOne_clear & self.blackPiece != 0 if color_to_move == self.WHITE else soEaOne_clear & self.whitePiece != 0
+            soEaOne =  self.soEaOne(soEaOne)
+            soEaOne_clear = self.soEaOne(soEaOne_clear)
+            not_blocked = soEaOne_clear & self.whitePiece == 0 if color_to_move == self.WHITE else soEaOne_clear & self.blackPiece == 0
+
+        if soEaOne_clear & ~self.NOT_RANK_1 and not_blocked and not opposite_taken:
+            new_boards.append(board(((self.board ^ bitboard) & ~soEaOne_clear) | soEaOne, next_to_move))
+            self.attack_squares = self.attack_squares | soEaOne_clear
+
+        if soEaOne_clear & ~self.NOT_H_FILE and not_blocked and not opposite_taken:
+            new_boards.append(board(((self.board ^ bitboard) & ~soEaOne_clear) | soEaOne, next_to_move))
+            self.attack_squares = self.attack_squares | soEaOne_clear
+
+        return new_boards
+    
+    def getSoWeSlide(self, bitboard, clear):
+        new_boards = []
+
+        color_to_move = self.color_to_move
+        next_to_move = self.BLACK if self.color_to_move == self.WHITE else self.WHITE
+
+        soWeOne =  self.soWeOne(bitboard)
+        soWeOne_clear = self.soWeOne(clear)
+    
+        not_blocked = soWeOne_clear & self.whitePiece == 0 if color_to_move == self.WHITE else soWeOne_clear & self.blackPiece == 0 
+
+        opposite_taken = False
+        
+        while soWeOne_clear & self.NOT_RANK_1 and soWeOne_clear & self.NOT_A_FILE and not_blocked and not opposite_taken:
+            new_boards.append(board(((self.board ^ bitboard) & ~soWeOne_clear) | soWeOne, next_to_move))
+            self.attack_squares = self.attack_squares | soWeOne_clear
+
+            opposite_taken = soWeOne_clear & self.blackPiece != 0 if color_to_move == self.WHITE else soWeOne_clear & self.whitePiece != 0
+            soWeOne =  self.soWeOne(soWeOne)
+            soWeOne_clear = self.soWeOne(soWeOne_clear)
+            not_blocked = soWeOne_clear & self.whitePiece == 0 if color_to_move == self.WHITE else soWeOne_clear & self.blackPiece == 0
+
+        if soWeOne_clear & ~self.NOT_RANK_1 and not_blocked and not opposite_taken:
+            new_boards.append(board(((self.board ^ bitboard) & ~soWeOne_clear) | soWeOne, next_to_move))
+            self.attack_squares = self.attack_squares | soWeOne_clear
+
+        if soWeOne_clear & ~self.NOT_A_FILE and not_blocked and not opposite_taken:
+            new_boards.append(board(((self.board ^ bitboard) & ~soWeOne_clear) | soWeOne, next_to_move))
+            self.attack_squares = self.attack_squares | soWeOne_clear
+
+        return new_boards
+
+
     def rook_moves(self, piece, start_square):
         new_boards = []
 
@@ -534,7 +851,22 @@ class Board:
         clear = 0xF << (start_square * 4) # square the piece is on with 0xf
 
         new_boards += self.getNoSlide(bitboard, clear)
-        print('here')
+        new_boards += self.getEaSlide(bitboard, clear)
+        new_boards += self.getSoSlide(bitboard, clear)
+        new_boards += self.getWeSlide(bitboard, clear)
+
+        return new_boards
+
+    def bishop_moves(self, piece, start_square):
+        new_boards = []
+
+        bitboard = piece << (start_square * 4) # square the piece is on with piece 
+        clear = 0xF << (start_square * 4) # square the piece is on with 0xf
+
+        new_boards += self.getNoEaSlide(bitboard, clear)
+        new_boards += self.getNoWeSlide(bitboard, clear)
+        new_boards += self.getSoEaSlide(bitboard, clear)
+        new_boards += self.getSoWeSlide(bitboard, clear)
 
         return new_boards
 
@@ -560,30 +892,35 @@ class Board:
 
             if square == 0:
                 pass
-            elif piece == self.KNIGHT:
-                pass
-                # all_pos_states += self.knight_moves(square, i)
             elif square == self.PAWN | self.WHITE and self.color_to_move == self.WHITE:
                 pass
                 # all_pos_states += self.pawn_moves_white(square, i)
-                all_pos_states += self.pawn_moves_white(square, i)
-
             elif square == self.PAWN | self.BLACK and self.color_to_move == self.BLACK:
                 pass
+            elif color != self.color_to_move:
+                pass
+            elif piece == self.KNIGHT:
+                pass
+                # all_pos_states += self.knight_moves(square, i)
                 # all_pos_states += self.pawn_moves_black(square, i)
-            elif square == self.PAWN:
-                all_pos_states += self.pawn_moves_white(square, i)
+            elif square == self.ROOK:
+                pass
+                # all_pos_states += self.rook_moves(square, i)
+            elif square == self.BISHOP:
+                all_pos_states += self.bishop_moves(square, i)
 
 
         for move in all_pos_states:
             move.print_board_hex()
+
+        self.print_board_hex(self.attack_squares)
 
 
         
 
 def main():
     
-    board = Board()
+    board = board()
     # board.print_board_hex()
     # board.number_board()
 
