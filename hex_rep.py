@@ -63,10 +63,10 @@ class Board:
     NOT_AB_FILE = 0xffffff00ffffff00ffffff00ffffff00ffffff00ffffff00ffffff00ffffff00
     NOT_GH_FILE = 0xffffff00ffffff00ffffff00ffffff00ffffff00ffffff00ffffff00ffffff
 
-    COLOR_TO_MOVE = 64
-    CASTLE_STATES = 65
-    EN_PASSANT_STATE = 66
-    LAST_END_SQUARE = 67
+    # COLOR_TO_MOVE = 64
+    # CASTLE_STATES = 65
+    # EN_PASSANT_STATE = 66
+    # LAST_END_SQUARE = 67
 
     ALL_DEFINED = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
 
@@ -139,15 +139,47 @@ class Board:
     def __init__(self, board=None, color_to_move=WHITE, last_end_square=0x0, can_en_passant=0x0,fpgn=None) -> None:
         self.board = board
         # print(self.board)
-        if board:
-            self.set_square(self.COLOR_TO_MOVE, color_to_move) 
-            self.set_square(self.LAST_END_SQUARE, last_end_square)
-            self.set_square(self.CASTLE_STATES, 0)
-            self.set_square(self.EN_PASSANT_STATE,can_en_passant)
+        self.color_to_move = color_to_move
+        self.last_end_square = last_end_square
+        self.castle_states = 0
+        self.can_en_passant= can_en_passant
 
         if board == None: 
-            self.getStartPos()
+            self.testPos()
+            # self.getStartPos()
+
         self.whitePiece, self.blackPiece = self.getWhiteBlackMasks()
+
+    def testPos(self):
+        self.board = 0x0
+        self.add_piece(0, self.WHITE | self.ROOK)
+        self.add_piece( 1, self.WHITE | self.KNIGHT)
+        self.add_piece( 2, self.WHITE | self.BISHOP)
+        self.add_piece( 3, self.WHITE | self.QUEEN)
+        self.add_piece( 4, self.WHITE | self.KING)
+        self.add_piece( 5, self.WHITE | self.BISHOP)
+        self.add_piece( 6, self.WHITE | self.KNIGHT)
+        self.add_piece( 7, self.WHITE | self.ROOK)
+        # for i in range(8, 16):
+        #     self.add_piece( i, self.WHITE | self.PAWN)
+        for i in range(48, 56):
+            self.add_piece( i, self.BLACK | self.PAWN)
+        self.add_piece( 56, self.BLACK | self.ROOK)
+        self.add_piece( 57, self.BLACK | self.KNIGHT)
+        self.add_piece( 58, self.BLACK | self.BISHOP)
+        self.add_piece( 59, self.BLACK | self.QUEEN)
+        self.add_piece( 60, self.BLACK | self.KING)
+        self.add_piece( 61, self.BLACK | self.BISHOP)
+        self.add_piece( 62, self.BLACK | self.KNIGHT)
+        self.add_piece( 63, self.BLACK | self.ROOK)
+        
+        self.add_piece( 33, self.BLACK | self.PAWN)
+        self.add_piece( 32, self.WHITE | self.PAWN)
+
+        self.color_to_move = 0x0
+        self.last_end_square = 33
+        self.castle_states = 0x0
+        self.can_en_passant= 0x1
 
     def getStartPos(self):
         self.board = 0x0
@@ -161,8 +193,8 @@ class Board:
         self.add_piece( 7, self.WHITE | self.ROOK)
         for i in range(8, 16):
             self.add_piece( i, self.WHITE | self.PAWN)
-        # for i in range(48, 56):
-        #     self.add_piece( i, self.BLACK | self.PAWN)
+        for i in range(48, 56):
+            self.add_piece( i, self.BLACK | self.PAWN)
         self.add_piece( 56, self.BLACK | self.ROOK)
         self.add_piece( 57, self.BLACK | self.KNIGHT)
         self.add_piece( 58, self.BLACK | self.BISHOP)
@@ -171,17 +203,7 @@ class Board:
         self.add_piece( 61, self.BLACK | self.BISHOP)
         self.add_piece( 62, self.BLACK | self.KNIGHT)
         self.add_piece( 63, self.BLACK | self.ROOK)
-        
-        self.add_piece( 33, self.BLACK | self.PAWN)
-        self.add_piece( 32, self.WHITE | self.PAWN)
-
-        self.add_piece( 64, 0x0) # setting white to move
-        self.add_piece( 65, 0x0) # setting all castling to 0
-        self.add_piece( 66, 0x1) # setting en passant to false
-        self.add_piece( 67, 33) # setting last move to 0
-
-        # self.add_piece( 32, self.WHITE | self.KNIGHT)
-
+    
     def getWhiteBlackMasks(self):
         whiteMask = 0
         blackMask = 0
@@ -260,10 +282,10 @@ class Board:
     2 3 4 5 6 4 3 2
     '''
     def print_game_state(self):
-        print("Game State: " + str(hex(self.get_piece_from_square(self.COLOR_TO_MOVE))))
-        print("Castling State: " + str(bin(self.get_piece_from_square(self.CASTLE_STATES))))
-        print("En Passant State: " + str(hex(self.get_piece_from_square(self.EN_PASSANT_STATE))))
-        print("Last Move: " + str(hex(self.get_piece_from_square(self.LAST_END_SQUARE))))
+        print("Game State: " + str(hex(self.color_to_move)))
+        print("Castling State: " + str(bin(self.castle_states)))
+        print("En Passant State: " + str(hex(self.can_en_passant)))
+        print("Last Move: " + str(hex(self.last_end_square)))
 
         print_str = ''
         for i in range(7, -1, -1):  # Start from 7 and decrement to 0
@@ -336,7 +358,7 @@ class Board:
 
         valid_moves = noNoEa | noEaEa | soEaEa | soSoEa | noNoWe | noWeWe | soWeWe | soSoWe
 
-        if self.get_piece_from_square(self.COLOR_TO_MOVE) == self.WHITE:
+        if self.color_to_move == self.WHITE:
             valid_moves = valid_moves & ~self.whitePiece 
             valid_moves = valid_moves | (valid_moves & self.blackPiece) 
         else:
@@ -344,7 +366,7 @@ class Board:
             valid_moves = valid_moves | (valid_moves & self.whitePiece) 
 
         # past_move = self.WHITE | self.KNIGHT if self.get_piece_from_square(self.COLOR_TO_MOVE) == self.WHITE else self.BLACK | self.KNIGHT
-        next_to_move = self.BLACK if self.get_piece_from_square(self.COLOR_TO_MOVE) == self.WHITE else self.WHITE
+        next_to_move = self.BLACK if self.color_to_move == self.WHITE else self.WHITE
 
         if noNoEa & valid_moves:
             new_boards.append(Board(((self.board ^ bitboard)& ~noNoEa_clear ) | noNoEa, next_to_move))
@@ -392,10 +414,13 @@ class Board:
         past_move = self.WHITE | self.PAWN 
         next_to_move = self.BLACK
 
-        if self.get_piece_from_square(self.EN_PASSANT_STATE):
-            last_end = (self.get_piece_from_square(self.LAST_END_SQUARE + 1) << 4) | self.get_piece_from_square(self.LAST_END_SQUARE)
+        if self.can_en_passant:
+            last_end = self.last_end_square
 
+            print(last_end, start_square)
             if last_end >= 32 and last_end <= 39 and start_square >= 32 and start_square <= 39:
+                print('in')
+
                 if last_end == start_square - 1:
                     new_boards.append(Board((((self.board ^ bitboard)) | self.noWeOne(bitboard)) & ~(0xF << (last_end * 4)), next_to_move))
                 if last_end == start_square + 1:
@@ -405,7 +430,7 @@ class Board:
             nortTwo = self.nortOne(nortOne) & ~self.whitePiece & ~self.blackPiece
             if nortTwo:
                 nortTwo_clear = self.nortOne(nortOne_clear) & ~self.whitePiece & ~self.blackPiece
-                print(self.get_square_from_piece(nortTwo_clear))
+                # print(self.get_square_from_piece(nortTwo_clear))
                 new_boards.append(Board(((self.board ^ bitboard) & ~nortTwo_clear) | nortTwo, next_to_move, self.get_square_from_piece(nortTwo_clear), 1))
 
         if noWeOne & valid_moves: 
@@ -438,8 +463,8 @@ class Board:
         valid_moves = soutOne | soWeOne | soEaOne
         next_to_move = self.WHITE
 
-        if self.get_piece_from_square(self.EN_PASSANT_STATE):
-            last_end = (self.get_piece_from_square(self.LAST_END_SQUARE + 1) << 4) | self.get_piece_from_square(self.LAST_END_SQUARE)
+        if self.can_en_passant:
+            last_end = (self.last_end_square)
 
             if last_end >= 24 and last_end <= 31 and start_square >= 24 and start_square <= 31:
                 if last_end == start_square - 1:
@@ -464,6 +489,54 @@ class Board:
             new_boards.append(Board(((self.board ^ bitboard) & ~soutOne_clear) | soutOne, next_to_move))
        
         return new_boards
+    
+    def getNoSlide(self, bitboard, clear):
+        new_boards = []
+
+        color_to_move = self.color_to_move
+
+        nortOne =  self.nortOne(bitboard)
+        nortOne_clear = self.nortOne(clear)
+
+        next_to_move = self.BLACK if self.color_to_move == self.WHITE else self.WHITE
+
+
+        while (nortOne_clear | self.board) != 0: #& self.PIECE_MASK != self.BLACK:
+            new_boards.append(Board(((self.board ^ bitboard) & ~nortOne_clear) | nortOne, next_to_move))
+
+            nortOne =  self.nortOne(nortOne)
+            nortOne_clear = self.nortOne(nortOne_clear)
+
+        return new_boards
+
+        # if color_to_move == self.WHITE:
+        #     nortOne =  nortOne  & ~self.whitePiece & self.blackPiece
+        #     nortOne_clear = nortOne_clear & ~self.whitePiece & self.blackPiece
+        # else: 
+        #     nortOne =  nortOne  & self.whitePiece & ~self.blackPiece
+        #     nortOne_clear = nortOne_clear & self.whitePiece & ~self.blackPiece
+
+
+    def getSoSlide(self):
+        pass
+
+    def getEaSlide(self):
+        pass
+
+    def getWeSlide(self):
+        pass
+
+    
+    def rook_moves(self, piece, start_square):
+        new_boards = []
+
+        bitboard = piece << (start_square * 4) # square the piece is on with piece 
+        clear = 0xF << (start_square * 4) # square the piece is on with 0xf
+
+        new_boards += self.getNoSlide(bitboard, clear)
+        print('here')
+
+        return new_boards
 
 
     '''Given any board hex representation,
@@ -472,10 +545,10 @@ class Board:
     def get_all_possible_next_board_states(self):
         pos_moves = 0
 
-        color_to_move = self.get_piece_from_square(self.COLOR_TO_MOVE)
-        castle_rights = self.get_piece_from_square(self.CASTLE_STATES)
-        en_passant_state = self.get_piece_from_square(self.COLOR_TO_MOVE)
-        last_end_square = self.get_piece_from_square(self.COLOR_TO_MOVE)
+        # color_to_move = self.get_piece_from_square(self.COLOR_TO_MOVE)
+        # castle_rights = self.get_piece_from_square(self.CASTLE_STATES)
+        # en_passant_state = self.get_piece_from_square(self.COLOR_TO_MOVE)
+        # last_end_square = self.get_piece_from_square(self.COLOR_TO_MOVE)
 
         all_pos_states = []
 
@@ -488,14 +561,18 @@ class Board:
             if square == 0:
                 pass
             elif piece == self.KNIGHT:
-                # all_pos_states += self.knight_moves(square, i)
                 pass
-            elif square == self.PAWN | self.WHITE and color_to_move == self.WHITE:
+                # all_pos_states += self.knight_moves(square, i)
+            elif square == self.PAWN | self.WHITE and self.color_to_move == self.WHITE:
+                pass
+                # all_pos_states += self.pawn_moves_white(square, i)
                 all_pos_states += self.pawn_moves_white(square, i)
-                
-            elif square == self.PAWN | self.BLACK and color_to_move == self.BLACK:
-                # print('here')
-                all_pos_states += self.pawn_moves_black(square, i)
+
+            elif square == self.PAWN | self.BLACK and self.color_to_move == self.BLACK:
+                pass
+                # all_pos_states += self.pawn_moves_black(square, i)
+            elif square == self.PAWN:
+                all_pos_states += self.pawn_moves_white(square, i)
 
 
         for move in all_pos_states:
