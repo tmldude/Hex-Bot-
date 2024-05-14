@@ -170,12 +170,14 @@ class Board:
         if board == None: 
             # self.testPos()
             # self.testEnPassant()
-            # self.getStartPos()
-            self.test_king()
+            self.init_position()
+            # self.test_king()
 
         
         self.whitePiece, self.blackPiece = self.getWhiteBlackMasks()
-        self.attack_board = self.generate_attack_board(self.WHITE if color_to_move == self.BLACK else self.WHITE)
+        self.attack_board = self.generate_attack_board(self.WHITE if color_to_move == self.BLACK else self.BLACK)
+        self.print_board_hex()
+        self.print_board_hex(self.attack_board)
         
 
         # self.print_board_hex(self.generate_attack_board(color = self.WHITE if color_to_move == self.BLACK else self.WHITE))
@@ -193,11 +195,11 @@ class Board:
         self.add_piece( 5, self.WHITE | self.BISHOP)
         self.add_piece( 6, self.WHITE | self.KNIGHT)
         self.add_piece( 7, self.WHITE | self.ROOK)
-        for i in range(8, 16):
+        for i in range(8, 15): # 16
             self.add_piece( i, self.WHITE | self.PAWN)
         # self.add_piece( 17, self.BLACK | self.PAWN)
         # self.add_piece( 22, self.BLACK | self.PAWN)
-        for i in range(48, 56):
+        for i in range(48, 55): # 56
             self.add_piece( i, self.BLACK | self.PAWN)
         self.add_piece( 56, self.BLACK | self.ROOK)
         self.add_piece( 57, self.BLACK | self.KNIGHT)
@@ -206,7 +208,7 @@ class Board:
         self.add_piece( 60, self.BLACK | self.KING)
         self.add_piece( 61, self.BLACK | self.BISHOP)
         self.add_piece( 62, self.BLACK | self.KNIGHT)
-        self.add_piece( 63, self.BLACK | self.ROOK)
+        # self.add_piece( 63, self.BLACK | self.ROOK)
     
     def getWhiteBlackMasks(self):
         whiteMask = 0
@@ -345,7 +347,7 @@ class Board:
     
     # SLIDE MOVES
            
-    def _getSlide(self, clear, direction, boundary1, boundary2=None):
+    def _getSlide(self, clear, direction, boundary1, boundary2):
         next_boards = []
 
         dir_clear = direction(clear)
@@ -354,7 +356,12 @@ class Board:
         not_blocked = True # applies for either color piece
 
         # add boards
-        while not_blocked and (dir_clear & boundary1) and (boundary2 is None or (dir_clear & boundary2)):
+        i = 0
+        # if boundary2 is not None:
+        #     print(dir_clear & boundary2)
+        while i < 5 and not_blocked and (dir_clear & boundary1) and (boundary2 is None or (dir_clear & boundary2)):
+            # print(hex(boundary1),hex(boundary2), hex(dir_clear))
+            # print((dir_clear & boundary1), (dir_clear & boundary2))
     
             next_boards.append(dir_clear)
 
@@ -364,6 +371,8 @@ class Board:
             
             # moving up, down, left, right, or diag one position 
             dir_clear = direction(dir_clear)
+
+            i += 1
 
         
         if dir_clear & ~boundary1 and not_blocked:
@@ -581,13 +590,13 @@ class Board:
 
             if square == 0:
                 pass
-            elif square == self.PAWN | self.WHITE and self.color_to_move == self.WHITE:
+            elif square == self.PAWN | self.WHITE and color == self.WHITE:
                 attack_board |= self.pawn_attacks_white(clear)
 
-            elif square == self.PAWN | self.BLACK and self.color_to_move == self.BLACK:
+            elif square == self.PAWN | self.BLACK and color == self.BLACK:
                 attack_board |= self.pawn_attacks_black(clear)
 
-            elif color != self.color_to_move:
+            elif color != piece_color:
                 pass
             elif piece == self.KNIGHT:
                 for move in self.knight_moves(clear):
@@ -633,7 +642,7 @@ class Board:
             color = square & self.COLOR_MASK
 
             clear = 0xF << (i * 4) # 0xf00000000000
-            bitboard = piece << (i * 4) # 0x300000000000
+            bitboard = (piece | color) << (i * 4) # 0x300000000000
 
 
             if square == 0:
@@ -642,7 +651,7 @@ class Board:
                 next_pawn_boards.append(self.pawn_moves_white(square, i))
             elif square == self.PAWN | self.BLACK and self.color_to_move == self.BLACK:
                 next_pawn_boards.append(self.pawn_moves_black(square, i))
-            elif color != self.color_to_move:
+            elif color == self.color_to_move:
                 pass
             elif piece == self.KNIGHT:
                 temp = [bitboard]
@@ -672,6 +681,9 @@ class Board:
 
         all_boards = []
         next_move = self.BLACK if self.color_to_move == self.WHITE else self.WHITE
+        
+        self.print_board_hex()
+        self.print_board_hex(self.attack_board)
 
 
         valid_moves_w = lambda x: x & ~self.whitePiece | (x & self.blackPiece) 
@@ -679,7 +691,7 @@ class Board:
 
         valid_move_check = valid_moves_w if self.color_to_move == self.WHITE else valid_moves_b
 
-        self.print_board_hex(self.attack_board)
+        # self.print_board_hex(self.attack_board)
 
         Completed_Boards = []
         color_to_move = self.WHITE if self.color_to_move == self.BLACK else self.BLACK
@@ -763,13 +775,12 @@ class Board:
                     temp = temp & ~move   # removes the piece at the move 
 
                     temp = temp | (move & color_board)   # adds the new piece with the right value
-                    # self.print_board_hex(self.attack_board)
 
-                    # self.print_board_hex(temp)
+                    self.print_board_hex(temp)
 
                     Completed_Boards.append(Board(board=temp, color_to_move=color_to_move))
 
-        # self.print_board_hex(all_king)
+        print(Completed_Boards)
 
      # TESTS
 
