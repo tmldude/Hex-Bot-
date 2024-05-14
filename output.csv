@@ -1,0 +1,433 @@
+board,evaluation
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(-26), BLACK)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(+44), WHITE)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(-31), BLACK)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(+67), WHITE)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(-14), BLACK)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(+44), WHITE)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(-16), BLACK)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(+39), WHITE)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(-26), BLACK)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(+63), WHITE)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(+49), BLACK)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(-53), WHITE)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(+35), BLACK)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(+191), WHITE)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(-178), BLACK)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(+182), WHITE)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(-164), BLACK)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(+241), WHITE)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(-180), BLACK)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(+237), WHITE)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(-217), BLACK)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(+310), WHITE)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(-315), BLACK)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(+343), WHITE)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(-350), BLACK)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(+503), WHITE)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(-44), BLACK)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(+39), WHITE)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(-53), BLACK)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(+225), WHITE)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(+267), BLACK)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(+172), WHITE)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(-49), BLACK)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(+400), WHITE)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(-221), BLACK)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(+318), WHITE)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(-345), BLACK)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(+273), WHITE)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(-275), BLACK)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(+506), WHITE)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(-371), BLACK)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(+452), WHITE)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(-75), BLACK)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(+192), WHITE)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(0), BLACK)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(0), WHITE)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(0), BLACK)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(0), WHITE)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(0), BLACK)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(0), WHITE)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Mate(+2), BLACK)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Cp(0), WHITE)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Mate(+1), BLACK)"
+". . . r . . k .
+p R . . . p p p
+. . . . . . . .
+Q . . . . . . .
+P . P . p . . .
+. . P . K q . .
+. . . B . P . P
+. . . . R . . .","PovScore(Mate(-0), WHITE)"
