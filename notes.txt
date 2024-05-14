@@ -1,0 +1,6 @@
+add promotion
+
+impl sliding functions (rook/bishop/queen)
+
+impl is_square_attacked()
+- concat all get_board()s for each board, each board has a self.is_attacked() board
