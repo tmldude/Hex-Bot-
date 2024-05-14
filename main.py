@@ -68,10 +68,10 @@ def test_position() -> Board:
     board.last_end_square = 0x0
     board.castle_states = 0x0
     board.can_en_passant = 0x0
+    return board
 
 
 def test_sliding() -> Board:
-    board = Board()
     board = Board()
     board.board = 0x0
     board.add_piece(0, board.WHITE | board.ROOK)
@@ -178,8 +178,11 @@ def test_king() -> Board:
 
 def main():
 
-    board = Board(init_position().board, Board.BLACK)
+    board = Board(test_position().board, Board.BLACK)
+    # print(board)
+
     board.print_board_hex()
+    board.print_board_hex(board.attack_board)
     # board.number_)
 
     # print(get_all_possible_next_board_states(board, white_pieces, black_pieces))
@@ -190,3 +193,7 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+# 0xabc0dcba00000000a00200011000000000000000900000000001111043465032
+# 0xabc0dcba00000000a00200011000000000000000900000000001111043465032
