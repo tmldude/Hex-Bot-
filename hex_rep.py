@@ -394,6 +394,7 @@ class Board:
             clear) & self.NOT_H_FILE & ~self.white_pieces & self.black_pieces
         noEaOne_clear = self.noEaOne(
             clear) & self.NOT_A_FILE & ~self.white_pieces & self.black_pieces
+            
 
         if self.can_en_passant:
             last_end = self.last_end_square
@@ -424,8 +425,19 @@ class Board:
                     [((self.board ^ bitboard) & ~nortTwo_clear) | nortTwo, self.get_square_from_piece(nortTwo_clear), 1])
 
         if nortOne:
-            next_boards.append(
-                ((self.board ^ bitboard) & ~nortOne_clear) | nortOne)
+            # promotion check
+            if start_square >=48 and start_square <= 55:
+                next_boards.append(
+                    ((self.board ^ bitboard) & ~nortOne_clear) | (nortOne_clear & Board.ALL_WHITE_ROOKS))
+                next_boards.append(
+                    ((self.board ^ bitboard) & ~nortOne_clear) | (nortOne_clear & Board.ALL_WHITE_KNIGHTS))
+                next_boards.append(
+                    ((self.board ^ bitboard) & ~nortOne_clear) | (nortOne_clear & Board.ALL_WHITE_BISHOPS))
+                next_boards.append(
+                    ((self.board ^ bitboard) & ~nortOne_clear) | (nortOne_clear & Board.ALL_WHITE_QUEENS))
+            else:
+                next_boards.append(
+                    ((self.board ^ bitboard) & ~nortOne_clear) | nortOne)
 
         if noWeOne:
             next_boards.append(
@@ -479,8 +491,18 @@ class Board:
                     [((self.board ^ bitboard) & ~soutTwo_clear) | soutTwo, self.get_square_from_piece(soutTwo_clear), 1])
 
         if soutOne:
-            next_boards.append(
-                ((self.board ^ bitboard) & ~soutOne_clear) | soutOne)
+            if start_square >=8 and start_square <= 15:
+                next_boards.append(
+                    ((self.board ^ bitboard) & ~soutOne_clear) | (soutOne_clear & Board.ALL_BLACK_ROOKS))
+                next_boards.append(
+                    ((self.board ^ bitboard) & ~soutOne_clear) | (soutOne_clear & Board.ALL_BLACK_KNIGHTS))
+                next_boards.append(
+                    ((self.board ^ bitboard) & ~soutOne_clear) | (soutOne_clear & Board.ALL_BLACK_BISHOPS))
+                next_boards.append(
+                    ((self.board ^ bitboard) & ~soutOne_clear) | (soutOne_clear & Board.ALL_BLACK_QUEENS))
+            else:
+                next_boards.append(
+                    ((self.board ^ bitboard) & ~soutOne_clear) | soutOne)
 
         if soWeOne:
             next_boards.append(
@@ -737,49 +759,49 @@ class Board:
             if self.color_to_move: # white
                 temp = 0x0
                 temp = self.board ^ king_location
-                temp = temp ^ (0xF << (7* 4))
+                temp = temp & ~(0xF << (7* 4))
                 temp = temp | 0x6200000
 
                 new_castle_state['white_king_moved'] = True
                 new_castle_state['QS_rook_w_moved'] = True
                 new_castle_state['KS_rook_w_moved'] = True
 
-                all_boards.append(Board(board=temp, color_to_move=next_color, castle_states=new_castle_states))
+                all_boards.append(Board(board=temp, color_to_move=next_color, castle_states=new_castle_state))
             else: # black
                 temp = 0x0
                 temp = self.board ^ king_location
-                temp = temp ^ (0xF << (63* 4))
+                temp = temp & ~(0xF << (63* 4))
                 temp = temp | 0x0620000000000000000000000000000000000000000000000000000000000000
                 new_castle_state['black_king_moved'] = True
                 new_castle_state['QS_rook_b_moved'] = True
                 new_castle_state['KS_rook_b_moved'] = True
 
-                all_boards.append(Board(board=temp, color_to_move=next_color, castle_states=new_castle_states))
+                all_boards.append(Board(board=temp, color_to_move=next_color, castle_states=new_castle_state))
 
         if queen_side_castle:
             new_castle_state = self.castle_states.copy()
             if self.color_to_move: # white
                 temp = 0x0
                 temp = self.board ^ king_location
-                temp = temp ^ (0xF << (0* 4))
+                temp = temp & ~(0xF << (0* 4))
                 temp = temp | 0x2600
                 # self.print_board_hex(temp)
                 new_castle_state['white_king_moved'] = True
                 new_castle_state['QS_rook_w_moved'] = True
                 new_castle_state['KS_rook_w_moved'] = True
 
-                all_boards.append(Board(board=temp, color_to_move=next_color, castle_states=new_castle_states))
+                all_boards.append(Board(board=temp, color_to_move=next_color, castle_states=new_castle_state))
             else: # black
                 temp = 0x0
                 temp = self.board ^ king_location
-                temp = temp ^ (0xF << (56* 4))
+                temp = temp & ~(0xF << (56* 4))
                 temp = temp | 0x260000000000000000000000000000000000000000000000000000000000
 
                 new_castle_state['black_king_moved'] = True
                 new_castle_state['QS_rook_b_moved'] = True
                 new_castle_state['KS_rook_b_moved'] = True
 
-                all_boards.append(Board(board=temp, color_to_move=next_color, castle_states=new_castle_states))
+                all_boards.append(Board(board=temp, color_to_move=next_color, castle_states=new_castle_state))
 
 
         # self.print_board_hex(king_location)
@@ -955,6 +977,9 @@ class Board:
                 # self.print_board_hex(new_attack_board)
                 # self.print_board_hex(possible_state.attack_board)
 
+
+                # since the board already checks if a king move is legal
+                # only check to see if the king is not on its original square or it has moved
                 if king_location & possible_state.board == 0:
                     available_moves.append(possible_state)
 
@@ -967,7 +992,11 @@ class Board:
                     possible_state.print_board_hex()
                 
             if not available_moves:
-                print('checkmate')
+                print('black wins' if self.color_to_move else 'white_wins')
+        else:
+            for possible_state in all_boards:
+                possible_state.print_board_hex()
+                self.print_board_hex(possible_state.attack_board)
         
         for move in available_moves:
             print(hex(move.board))
