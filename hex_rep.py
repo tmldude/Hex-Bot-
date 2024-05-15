@@ -972,12 +972,6 @@ class Board:
         available_moves = []
         if IN_CHECK:
             for possible_state in all_boards:
-                possible_state.print_board_hex()
-                # new_attack_board = self.generate_attack_board(self.BLACK)
-                # self.print_board_hex(new_attack_board)
-                # self.print_board_hex(possible_state.attack_board)
-
-
                 # since the board already checks if a king move is legal
                 # only check to see if the king is not on its original square or it has moved
                 if king_location & possible_state.board == 0:
@@ -985,21 +979,22 @@ class Board:
 
                 # blocking pieces, pieces moving in the way of the king 
                 new_attack_board = possible_state.generate_attack_board(self.color_to_move)
-                self.print_board_hex(possible_state.generate_attack_board(self.color_to_move))
+                # self.print_board_hex(possible_state.generate_attack_board(self.color_to_move))
 
                 if new_attack_board & king_location == 0:
                     available_moves.append(possible_state)
-                    possible_state.print_board_hex()
+                    # possible_state.print_board_hex()
                 
             if not available_moves:
                 print('black wins' if self.color_to_move else 'white_wins')
         else:
-            for possible_state in all_boards:
-                possible_state.print_board_hex()
-                self.print_board_hex(possible_state.attack_board)
+            available_moves = all_boards
         
-        for move in available_moves:
-            print(hex(move.board))
+        # for move in available_moves:
+        #     print(hex(move.board))
+        #     self.print_board_hex(move.attack_board)
+
+        return available_moves
 
 
 # '''NOT CURRENTLY BEING USED : Function takes in piece ?? outputs color integer??'''

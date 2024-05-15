@@ -244,10 +244,11 @@ def test_king() -> Board:
 
     return board
 
+import random
 
 def main():
 
-    board = Board(test_promo().board, Board.BLACK)
+    board = Board(init_position().board, Board.BLACK)
     # print(board)
 
     board.print_board_hex()
@@ -256,8 +257,25 @@ def main():
 
     # print(get_all_possible_next_board_states(board, white_pieces, black_pieces))
 
-    board.generate_all_possible_next_board_states()
+    all_curr = board.generate_all_possible_next_board_states()
+
+    # for move in all_curr:
+    #     move.print_board_hex()
     # board.number_)
+
+    chosen = random.choice(all_curr)
+
+    chosen.print_board_hex()
+    chosen.print_board_hex(chosen.attack_board)
+
+    print("===========================")
+    second_moves = chosen.generate_all_possible_next_board_states()
+    second_move = random.choice(second_moves)
+
+    second_move.print_board_hex()
+    second_move.print_board_hex(second_move.attack_board)
+
+
 
 
 if __name__ == "__main__":
