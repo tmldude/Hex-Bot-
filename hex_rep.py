@@ -698,7 +698,7 @@ class Board:
             color = square & Board.COLOR_MASK
 
             clear = 0xF << (i * 4)  # 0xf00000000000
-            bitboard = piece << (i * 4)  # 0x300000000000
+            bitboard = square << (i * 4)  # 0x300000000000
 
             if square == 0 or color == self.color_to_move:
                 continue
@@ -806,6 +806,7 @@ class Board:
 
         # self.print_board_hex(king_location)
         king_piece_moves = next_king_boards[0][1:]
+        # print(king_piece_moves)
         # all_king = 0
         # print('inaa')
         if king_piece_moves:
@@ -814,21 +815,33 @@ class Board:
             # for each move of this king (skip idx 0 -- 'current pos')
             for move in king_piece_moves:
 
+                # print("---------")
+                # print(hex(move))
+                # print(hex(Board.ALL_DEFINED))
+                # self.print_board_hex((move))
                 
-                if valid_move_check(move) and move and not move & self.attack_board:
+
+                if valid_move_check(move) and move and not move & self.attack_board and move & Board.ALL_DEFINED:
                     # all_king |= move
                     # print('inee')
                     # self.print_board_hex((move))
                     # print(hex(self.attack_board))
 
+                    # print("innn")
+                    # print(hex(valid_move_check(move)), not move)
+                    # self.print_board_hex((move))
+                    # print(hex(self.board))
 
                     temp = 0x0
                     temp = (self.board ^ king_location)  # remove current piece
-                    temp = temp & ~move   # removes the piece at the move
+                    # print(hex(temp))
 
+                    temp = temp & ~move   # removes the piece at the move
+                    # print(hex(temp))
                     # adds the new piece with the right value
                     # self.print_board_hex((temp))
                     temp = temp | (move & color_board)
+                    # print(hex(temp))
                     # self.print_board_hex(self.attack_board)
                     
                     new_castle_states = self.castle_states
@@ -841,7 +854,7 @@ class Board:
 
                     all_boards.append(
                         Board(board=temp, color_to_move=next_color, castle_states=new_castle_states))
-                    
+                # print("---------")   
                     # self.print_board_hex(Board(board=temp, color_to_move=next_color, castle_states=self.castle_states).attack_board)
 
 
@@ -872,18 +885,28 @@ class Board:
                 # for each move of this knight (skip idx 0 -- 'current pos')
                 for move in knight[1:]:
                     # check if valid for white or black (TODO: black)
-                    if valid_move_check(move) and move:
+                    # print("---------")
+                    
+                    if valid_move_check(move) and move and (move & Board.ALL_DEFINED):
                         temp = 0x0
+                        # print(hex(move))
+
                         # remove current piece
                         temp = (self.board ^ current_piece)
+                        # print(self.color_to_move, hex(temp), hex(self.board), hex(current_piece))
                         temp = temp & ~move   # removes the piece at the move
+                        # print(hex(temp))
                         # adds the new piece with the right value
                         temp = temp | (move & color_board)
+                        # print(hex(temp))
+                        
+                        
 
                         all_boards.append(
                             Board(board=temp, color_to_move=next_color, castle_states=self.castle_states))
                         # self.print_board_hex(temp)
                         # self.print_board_hex(Board(board=temp, color_to_move=next_color).attack_board)
+                    # print("------------------")
 
         for rook in next_rook_boards:
             if rook:
@@ -894,7 +917,7 @@ class Board:
                 # for each move of this rook (skip idx 0 -- 'current pos')
                 for move in rook[1:]:
                     # check if valid for white or black (TODO: black)
-                    if valid_move_check(move) and move:
+                    if valid_move_check(move) and move and (move & Board.ALL_DEFINED):
                         temp = 0x0
                         # remove current piece
                         temp = (self.board ^ current_piece)
@@ -930,7 +953,7 @@ class Board:
                 # for each move of this bishop (skip idx 0 -- 'current pos')
                 for move in bishop_piece_moves[1:]:
                     # check if valid for white or black (TODO: black)
-                    if valid_move_check(move) and move:
+                    if valid_move_check(move) and move and (move & Board.ALL_DEFINED):
                         temp = 0x0
                         # remove current piece
                         temp = (self.board ^ current_piece)
@@ -955,7 +978,7 @@ class Board:
                 # for each move of this queen (skip idx 0 -- 'current pos')
                 for move in queen_piece_moves[1:]:
                     # check if valid for white or black (TODO: black)
-                    if valid_move_check(move) and move:
+                    if valid_move_check(move) and move and (move & Board.ALL_DEFINED):
                         temp = 0x0
                         # remove current piece
                         temp = (self.board ^ current_piece)
@@ -985,10 +1008,16 @@ class Board:
                     available_moves.append(possible_state)
                     # possible_state.print_board_hex()
                 
-            if not available_moves:
-                print('black wins' if self.color_to_move else 'white_wins')
         else:
-            available_moves = all_boards
+            # making sure the piece cannot move to create a check
+            for possible_state in all_boards:
+                new_attack_board = possible_state.generate_attack_board(self.color_to_move)
+                if new_attack_board & king_location == 0:
+                    available_moves.append(possible_state)
+
+        if not available_moves:
+                print('black wins' if self.color_to_move else 'white_wins')
+
         
         # for move in available_moves:
         #     print(hex(move.board))
