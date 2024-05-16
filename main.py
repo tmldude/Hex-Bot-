@@ -1,5 +1,7 @@
 from hex_rep import Board
 
+from evaluate import StockFishEvaluate
+from mini_max import ChessAI
 
 def init_position() -> Board:
     board = Board()
@@ -127,7 +129,6 @@ def test_promo() -> Board:
 
     return board
 
-
 def test_position() -> Board:
     board = Board()
     board.board = 0x0
@@ -168,7 +169,6 @@ def test_position() -> Board:
     board.can_en_passant = 0x0
     return board
 
-
 def test_sliding() -> Board:
     board = Board()
     board.board = 0x0
@@ -206,9 +206,8 @@ def test_sliding() -> Board:
 
     return board
 
-
 def test_en_passant() -> Board:
-    board = Board()
+    board = Board(en_passant_square_fen=41)
     board.board = 0x0
     board.add_piece(0, board.WHITE | board.ROOK)
     board.add_piece(1, board.WHITE | board.KNIGHT)
@@ -238,9 +237,9 @@ def test_en_passant() -> Board:
     board.last_end_square = 33
     board.castle_states = 0x0
     board.can_en_passant = 0x1
+    # board.en_passant_square_fen = 41
 
     return board
-
 
 def test_king() -> Board:
     board = Board()
@@ -291,62 +290,148 @@ def test_draw() -> Board:
     return board
 
 
-import random
 
-def main():
-    board = Board(test_draw().board, Board.BLACK)
+
+def play_stockfish_ChessAI():
+    board = Board(init_position().board, Board.BLACK)
     board.print_board_hex()
-    board.print_board_hex(board.attack_board)
 
-    all_curr = board.generate_all_possible_next_board_states()
-
-    for move in all_curr:
+    move = ChessAI(board).get_best_move(3, 'nega')
+    move.print_board_hex()
+    
+    max_iter = 256
+    i = 0
+    while not move.game_is_over and i < max_iter:
+        stock_fish_eval = StockFishEvaluate(move)
+        move = stock_fish_eval.stockfish_next_move()
+        move = stock_fish_eval.fen_to_board(move)
+        move.print_board_hex()
+        
+        move = ChessAI(move).get_best_move(3, 'nega')
         move.print_board_hex()
 
-    board2 = Board(init_position().board, Board.BLACK)
-    # print(board2.get_reward())
-    print(board.get_reward())
 
-
-    # chosen = random.choice(all_curr)
-
-    # chosen.print_board_hex()
-    # chosen.print_board_hex(chosen.attack_board)
-
-    # print("===========================")
-    # second_moves = chosen.generate_all_possible_next_board_states()
-    # for move in second_moves:
-    #     move.print_board_hex()
-
-    # second_move = random.choice(second_moves)
-
-    # second_move.print_board_hex()
-    # second_move.print_board_hex(second_move.attack_board)
-
-    # play_game()
-
-
-
-
-
-def play_game():
-    board = Board(init_position().board, Board.BLACK)
-
-    max_moves = 256
-
-    i = 0
-    gameover = False
-    current_state = board.generate_all_possible_next_board_states()
-    while i < max_moves and not gameover:
-        board = random.choice(current_state)
-        # chosen.print_board_hex()
-        # chosen.print_board_hex(chosen.attack_board)
-
-        current_state = board.generate_all_possible_next_board_states()
         i += 1
 
+   
 
-    board.print_board_hex()
+
+
+def main():
+    play_stockfish_ChessAI()
+
+    # board2 = Board(test_en_passant().board, Board.BLACK, en_passant_square_fen=41)
+    # board2.print_board_hex()
+
+    # move1 = EvaluateBoard(board2).getRandomMove()
+    # move1.print_board_hex()
+
+    # stock_fish_eval = StockFishEvaluate(move1)
+    # move2 = stock_fish_eval.stockfish_next_move()
+    # move2 = stock_fish_eval.fen_to_board(move2)
+    # move2.print_board_hex()
+
+    # move3 = EvaluateBoard(move2).getRandomMove()
+    # move3.print_board_hex()
+
+
+
+
+
+
+
+
+    # board2.print_board_hex()
+    
+     
+    # print(stock_fish_eval.fen)
+    # print(stock_fish_eval.score)
+    # print(stock_fish_eval.interpretted_score)
+    # stock_fish_eval.fen_to_hex(stock_fish_eval.fen)
+
+
+
+    
+
+    # print(hex(board.board))
+    # print(hex_to_board(hex(board.board)))
+    # board.print_board_hex()
+
+
+    # # Example hex string
+    # hex_string = "0xa b c d e c b a9 9 9 9 9 9 9 90 0 0 0 0 0 0 00 0 0 0 0 0 0 00 0 0 0 0 0 0 0 0 0 0 0 0 0 0 01 1 1 1 1 1 1 12 3 4 5 6 4 3 2"
+
+    # # Convert the hex string to a board representation
+    # board = hex_to_board(hex_string)
+
+    # # Example parameters
+    # active_color = 'white' if board.color_to_move == Board.BLACK else 'black'
+    # can_castle_kingside = {'white': not board.castle_states['white_king_moved'] and not board.castle_states['KS_rook_w_moved'], 'black': not board.castle_states['black_king_moved'] and not board.castle_states['KS_rook_b_moved']}
+    # can_castle_queenside = {'white': not board.castle_states['white_king_moved'] and not board.castle_states['QS_rook_w_moved'], 'black': not board.castle_states['black_king_moved'] and not board.castle_states['QS_rook_b_moved']}
+    # en_passant = "-" if not board.en_passant_square_fen else square_number_to_fen(board.en_passant_square_fen)
+    # halfmove_clock = 0
+    # fullmove_number = 1
+
+    # # # Convert the board to FEN
+    # fen = convert_to_fen(hex_to_board(hex(board.board)), active_color, can_castle_kingside, can_castle_queenside, en_passant, halfmove_clock, fullmove_number)
+    # print(fen)
+    # print("======================")
+
+    # board2 = Board(test_en_passant().board, Board.BLACK, en_passant_square_fen=41)
+    # board2.print_board_hex(board2.board)
+    # print(hex_to_board(hex(board2.board)))
+
+    # active_color = 'white' if board2.color_to_move == Board.BLACK else 'black'
+    # can_castle_kingside = {'white': not board2.castle_states['white_king_moved'] and not board2.castle_states['KS_rook_w_moved'], 'black': not board2.castle_states['black_king_moved'] and not board2.castle_states['KS_rook_b_moved']}
+    # can_castle_queenside = {'white': not board2.castle_states['white_king_moved'] and not board2.castle_states['QS_rook_w_moved'], 'black': not board2.castle_states['black_king_moved'] and not board2.castle_states['QS_rook_b_moved']}
+    # en_passant = "-" if not board2.en_passant_square_fen else square_number_to_fen(board2.en_passant_square_fen)
+    # halfmove_clock = 0
+    # fullmove_number = 1
+
+    # print(board2.en_passant_square_fen)
+
+    # fen2 = convert_to_fen(hex_to_board(hex(board2.board)), active_color, can_castle_kingside, can_castle_queenside, en_passant, halfmove_clock, fullmove_number)
+
+    # print(fen2)
+
+    # engine_path = "D:\ChessData\stockfish\stockfish-windows-x86-64-avx2.exe"
+
+    # score = stockfish_evaluation(engine_path, fen)
+    # print(score)
+
+
+    # score = stockfish_evaluation(engine_path, fen2)
+    # print(score)
+
+
+
+
+
+
+
+def play_game(board):
+    legal_moves = board.generate_all_possible_next_board_states()
+
+    best_move = None
+    best_score = -9999
+
+    # for move in legal_moves:
+
+
+
+
+    # gameover = False
+    current_state = board.generate_all_possible_next_board_states()
+    # while i < max_moves and not gameover:
+    #     board = random.choice(current_state)
+    #     # chosen.print_board_hex()
+    #     # chosen.print_board_hex(chosen.attack_board)
+
+    #     current_state = board.generate_all_possible_next_board_states()
+    #     i += 1
+
+
+    # board.print_board_hex()
 
 
 
@@ -394,55 +479,10 @@ class ChessEnv:
         black_material = sum(self.PIECE_VALUES[piece] for piece in self.get_pieces(self.BLACK))
         return white_material - black_material
 
-class QLearningAgent:
-    def __init__(self, action_space, state_space, alpha=0.1, gamma=0.99, epsilon=0.1):
-        self.q_table = np.zeros((state_space, action_space))
-        self.alpha = alpha
-        self.gamma = gamma
-        self.epsilon = epsilon
-        self.action_space = action_space
-
-    def select_action(self, state):
-        if random.uniform(0, 1) < self.epsilon:
-            return random.choice(range(self.action_space))
-        return np.argmax(self.q_table[state])
-
-    def update(self, state, action, reward, next_state):
-        best_next_action = np.argmax(self.q_table[next_state])
-        td_target = reward + self.gamma * self.q_table[next_state][best_next_action]
-        td_error = td_target - self.q_table[state][action]
-        self.q_table[state][action] += self.alpha * td_error
-
-
-def train_agent(episodes=1000):
-    env = Board(init_position().board, Board.BLACK)
-    agent = QLearningAgent(action_space=len(env.next_states), state_space=1000)  # Adjust state_space
-
-    max_moves = 256
-    max_depth = 3
-
-    for episode in range(episodes):
-        env = Board(init_position().board, Board.BLACK)
-        depth=0
-        done = False
-        i = 0
-        while not done and i < max_moves:
-            action = agent.select_action(state)
-            next_state, reward, done = env.step(action)
-            agent.update(state, action, reward, next_state)
-            state = next_state
-            
-            i += 1
-            depth += 1
-            if depth >= max_depth:
-                break
-
-
 
 if __name__ == "__main__":
-    # main()
+    main()
     
-    train_agent(episodes=10000)
 
 
 # 0xabc0dcba00000000a00200011000000000000000900000000001111043465032

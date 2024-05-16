@@ -1,32 +1,87 @@
-from hex_rep import get_move
 
 
-# from evaluation import evaluate
+import pandas as pd
+
+import chess
+import chess.engine
+
+from hex_rep import Board
 import random
-def evaluate():
-    return random.uniform(-10, 10)
 
-
-class Node:
-    '''
-    Class Node which represents each state in the minimax decision tree
-
-    Board -> the hex representation of the board we have that has
-    Eval -> the ML evaluation of the board (currently just a random num)
-    Next_Moves -> all possible next moves generated from the move logic (currently unimplemented)
-
-    TO DO:  
-    1. Decide how you want the nodes to chain together or if they do not because minimax is an exhaustive decision algo
-    2. Build out the minimiax 
-    3. Build out the alpha-beta optimization 
-    
-    '''
-    def __init__(self, board: int) -> None:
+class ChessAI:
+    '''Takes in a board to find the next move and evaluate the next best position, using our AI'''
+    def __init__(self, board):
         self.board = board 
-        self.eval = evaluate() # evaluate(board)
-        self.next_moves = get_move(board)
 
+    def getRandomMove(self):
+        all_curr = self.board.generate_all_possible_next_board_states()
+        
+        if all_curr:
+            chosen = random.choice(all_curr)
+            return chosen
+        return self.board
+    
+    
+    def evaluate_board(self, board):
+        return board.get_reward()
 
-# builds decision tree based on next moves and evaluation 
-def mini_max():
-    return 'Unimplemented'
+    def minimax(self, board, depth, alpha, beta, is_maximizing):
+        if depth == 0 or board.game_is_over:
+            return self.evaluate_board(board)
+        
+        legal_moves = board.generate_all_possible_next_board_states()
+        
+        if is_maximizing:
+            max_eval = float('-inf')
+            for move in legal_moves:
+                eval = self.minimax(move, depth - 1, alpha, beta, False)
+                max_eval = max(max_eval, eval)
+                alpha = max(alpha, eval)
+                if beta <= alpha:
+                    break
+            return max_eval
+        else:
+            min_eval = float('inf')
+            for move in legal_moves:
+                eval = self.minimax(move, depth - 1, alpha, beta, True)
+                min_eval = min(min_eval, eval)
+                beta = min(beta, eval)
+                if beta <= alpha:
+                    break
+            return min_eval
+        
+    def negamax(self, board, depth, alpha, beta, color):
+        if depth == 0 or board.game_is_over:
+            return color * self.evaluate_board(board)
+        
+        max_eval = float('-inf')
+        legal_moves = board.generate_all_possible_next_board_states()
+        
+        for move in legal_moves:
+            new_board = move  
+            eval = -self.negamax(new_board, depth - 1, -beta, -alpha, -color)
+            max_eval = max(max_eval, eval)
+            alpha = max(alpha, eval)
+            if alpha >= beta:
+                break
+        return max_eval
+
+    def get_best_move(self, max_depth, engine = 'mini'):
+        best_move = None
+        best_value = float('-inf')
+        alpha = float('-inf')
+        beta = float('inf')
+        
+        legal_moves = self.board.generate_all_possible_next_board_states()
+        
+        for move in legal_moves:
+            if engine == 'mini':
+                board_value = self.minimax(move, max_depth - 1, alpha, beta, False)
+            if engine == 'nega':
+                board_value = self.negamax(move, max_depth - 1, alpha, beta, False)
+
+            if board_value > best_value:
+                best_value = board_value
+                best_move = move  # Store the best move as the new board state
+        
+        return best_move

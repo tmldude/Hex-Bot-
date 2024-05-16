@@ -159,7 +159,7 @@ class Board:
     def noWeOne(b) -> int:
         return (b << (7*4)) & Board.NOT_H_FILE
 
-    def __init__(self, board=0, color_to_move=0, attack_board=0x0, last_end_square=0x0, can_en_passant=0x0, castle_states=None, fpgn=None) -> None:
+    def __init__(self, board=0, color_to_move=0, last_end_square=0x0, can_en_passant=0x0, en_passant_square_fen=None, castle_states=None, fpgn=None) -> None:
         self.board = board
         # print(self.board)
         # self.color_to_move = self.WHITE if color_to_move == self.BLACK else self.BLACK
@@ -176,13 +176,12 @@ class Board:
         self.can_en_passant = can_en_passant
         self.special_board_states: list[list] = []
 
-        if board:
-            self.white_pieces, self.black_pieces = self._get_color_masks()
-            self.attack_board = self.generate_attack_board(self.color_to_move)
-            self.next_states = self.generate_all_possible_next_board_states()
+        self.white_pieces, self.black_pieces = self._get_color_masks()
+        self.attack_board = self.generate_attack_board(self.color_to_move)
         self.check_mate = False
         self.draw = False
         self.game_is_over = False
+        self.en_passant_square_fen = en_passant_square_fen
 
         # self.print_board_hex()
         # self.print_board_hex(self.attack_board)
@@ -236,7 +235,7 @@ class Board:
             return other >> (square * 4) & 0xF
         return self.board >> (square * 4) & 0xF
 
-    '''a board with 1 piece one it ie 100100000000
+    '''a board with 1 piece one it ie 00100000000
     looks for the 1 piece and returns how many squares from the beginning it is
     for en passant past move square check'''
 
@@ -427,7 +426,7 @@ class Board:
                     nortOne_clear) & ~self.white_pieces & ~self.black_pieces
                 # print(self.get_square_from_piece(nortTwo_clear))
                 self.special_board_states.append(
-                    [((self.board ^ bitboard) & ~nortTwo_clear) | nortTwo, self.get_square_from_piece(nortTwo_clear), 1])
+                    [((self.board ^ bitboard) & ~nortTwo_clear) | nortTwo, self.get_square_from_piece(nortTwo_clear), 1, self.get_square_from_piece(nortOne_clear)])
 
         if nortOne:
             # promotion check
@@ -493,7 +492,8 @@ class Board:
                 soutTwo_clear = self.soutOne(
                     soutOne_clear) & ~self.white_pieces & ~self.black_pieces
                 self.special_board_states.append(
-                    [((self.board ^ bitboard) & ~soutTwo_clear) | soutTwo, self.get_square_from_piece(soutTwo_clear), 1])
+                    [((self.board ^ bitboard) & ~soutTwo_clear) | soutTwo, self.get_square_from_piece(soutTwo_clear), 1, self.get_square_from_piece(soutOne_clear)])
+
 
         if soutOne:
             if start_square >=8 and start_square <= 15:
@@ -867,8 +867,8 @@ class Board:
                     # self.print_board_hex(Board(board=temp, color_to_move=next_color, castle_states=self.castle_states).attack_board)
 
 
-        for special_board, last_move_square, en_passant in self.special_board_states:
-            all_boards.append(Board(board=special_board, color_to_move=next_color, last_end_square=last_move_square, can_en_passant=en_passant, castle_states=self.castle_states))
+        for special_board, last_move_square, en_passant, en_pass_fen in self.special_board_states:
+            all_boards.append(Board(board=special_board, color_to_move=next_color, last_end_square=last_move_square, can_en_passant=en_passant, castle_states=self.castle_states, en_passant_square_fen=en_pass_fen))
             
             # print(hex((special_board)))
             # (Board(board=special_board, color_to_move=next_color,
@@ -1057,7 +1057,7 @@ class Board:
             else:
                 black_total += PIECE_VALUES[piece] if PIECE_VALUES.get(piece) else 0
 
-        print(white_total, black_total)
+        # print(white_total, black_total)
         return white_total - black_total
     
 
@@ -1073,10 +1073,10 @@ class Board:
     
     # def is_game_over(self):
     #     return self.game_is_over
-    
 
     def step(self, action):
-        return self.next_states[action], self.get_reward(), self.game_is_over
+        print(action)
+        return self.generate_all_possible_next_board_states()[action], self.get_reward(), self.game_is_over
         
 
 
