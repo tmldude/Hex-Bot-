@@ -1,26 +1,15 @@
 from multiprocessing import Pool, cpu_count, freeze_support
-import torch
-import torch.nn as nn
-import torch.optim as optim
 
 import chess
 import chess.pgn
 import chess.engine
 
 import pandas as pd
+import numpy as np
 
-from hex_rep import Board
-from evaluate import StockFishEvaluate
-
-import chess
-import chess.engine
 import random
 import json
-import torch
-import torch.nn as nn
-import torch.optim as optim
-from torch.utils.data import Dataset, DataLoader
-import numpy as np
+from torch.utils.data import Dataset
 
 
 '''These 2 functions generate a random dataset, slow moving'''
@@ -114,7 +103,7 @@ def parse_and_evaluate_pgn(pgn_path, output_path, max_games=10000):
             moves = list(game.mainline_moves())
             data.append(moves)      
             games_processed += 1
-            
+
             if games_processed% 1000 == 0:
                 print(f"Collected {games_processed} games")
         
@@ -133,6 +122,6 @@ if __name__ == "__main__":
 
     engine_path = "D:/ChessData/stockfish/stockfish-windows-x86-64-avx2.exe"
     pgn_path = "D:\ChessData\lichess_db_standard_rated_2024-02.pgn"
-    output_path = r"C:\Users\tmlaz\Desktop\chesspy\chess_from_pgn_50000.json"
+    output_path = r"C:\Users\tmlaz\Desktop\chesspy\chess_from_pgn_250000.json"
 
-    parse_and_evaluate_pgn(pgn_path, output_path, max_games=50000)
+    parse_and_evaluate_pgn(pgn_path, output_path, max_games=250000)
