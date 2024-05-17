@@ -9,6 +9,8 @@ import numpy as np
 
 from StockFishEvalBoard import StockFishEvalBoard
 from ConvNEt import ChessCNN
+from tensorflow.keras.models import load_model
+
 
 
 
@@ -16,10 +18,13 @@ class EngineAI:
     '''Takes in a board to find the next move and evaluate the next best position, using our AI'''
     def __init__(self, board):
         self.board = chess.Board(board) 
-        self.model = ChessCNN()
-        state_dict = torch.load('chess_cnn_model_50k.pth')
-        self.model.load_state_dict(state_dict)
-        self.model.eval()
+
+        self.model = load_model('chess_model_250k.h5')
+        # self.model = ChessCNN()
+        # state_dict = torch.load('chess_cnn_model_50k.pth')
+        # self.model.load_state_dict(state_dict)
+        # self.model.eval()
+
 
 
     def get_random_move(self):
@@ -33,30 +38,52 @@ class EngineAI:
     def evaluate_board_piece_count(self, board):
         return sum([self.get_piece_value(piece) for piece in board.piece_map().values()])
     
-    def fen_to_tensor(self, fen):
-        piece_list = ['P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k']
-        piece_dict = {piece: i for i, piece in enumerate(piece_list)}
+    # def fen_to_tensor(self, fen):
+    #     piece_list = ['P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k']
+    #     piece_dict = {piece: i for i, piece in enumerate(piece_list)}
         
+    #     board = chess.Board(fen)
+    #     tensor = np.zeros((12, 8, 8), dtype=np.float32)
+        
+    #     for square in chess.SQUARES:
+    #         piece = board.piece_at(square)
+    #         if piece:
+    #             piece_type = piece_dict[piece.symbol()]
+    #             row, col = divmod(square, 8)
+    #             tensor[piece_type, row, col] = 1
+        
+    #     return torch.tensor(tensor, dtype=torch.float32).unsqueeze(0)
+    def fen_to_matrix(self, fen):
+        piece_map = {
+            'P': 0, 'N': 1, 'B': 2, 'R': 3, 'Q': 4, 'K': 5,
+            'p': 6, 'n': 7, 'b': 8, 'r': 9, 'q': 10, 'k': 11
+        }
         board = chess.Board(fen)
-        tensor = np.zeros((12, 8, 8), dtype=np.float32)
-        
+        matrix = np.zeros((8, 8, 12), dtype=int)
         for square in chess.SQUARES:
             piece = board.piece_at(square)
             if piece:
-                piece_type = piece_dict[piece.symbol()]
-                row, col = divmod(square, 8)
-                tensor[piece_type, row, col] = 1
-        
-        return torch.tensor(tensor, dtype=torch.float32).unsqueeze(0)
+                row, col = divmod(square, 8) 
+                matrix[row, col, piece_map[piece.symbol()]] = 1
+        return np.expand_dims(matrix, axis=0)
+
+
+    # def evaluate_board_CNN(self, board):
+    #     fen = board.fen()
+    #     board_tensor = self.fen_to_matrix(fen)
+    #     # print(f"Board Tensor: {board_tensor}")
+    #     with torch.no_grad():
+    #         output = self.model(board_tensor)
+    #     # print(f"Model Output: {output}")
+    #     return output.item()
 
     def evaluate_board_CNN(self, board):
         fen = board.fen()
-        board_tensor = self.fen_to_tensor(fen)
-        print(f"Board Tensor: {board_tensor}")
-        with torch.no_grad():
-            output = self.model(board_tensor)
-        print(f"Model Output: {output}")
-        return output.item()
+        matrix = self.fen_to_matrix(fen)
+        output = self.model.predict(matrix,verbose = 0)
+    
+        # print(output[0][0])
+        return output[0][0]
     
     def get_piece_value(self, piece):
         values = {
@@ -175,7 +202,7 @@ class EngineAI:
         centipawn_losses = []
 
         while not board.is_game_over() and i < max_iter:
-            # self.print_board_fancy(board)
+            self.print_board_fancy(board)
 
             if who_goes_first:
                 stock = StockFishEvalBoard(board)
@@ -188,7 +215,7 @@ class EngineAI:
                 initial_score = self.evaluate_board_CNN(board)
 
                 # print(f"initial_score_CNN: {initial_score}")
-                move = self.get_best_move(3, self.evaluate_board_CNN, 'nega')
+                move = self.get_best_move(2, 'nega')
                 board.push(move)
 
             who_goes_first = 0 if who_goes_first else 1

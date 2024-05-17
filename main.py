@@ -325,7 +325,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def simulate_games(num_games=1000):
+def simulate_games(num_games=5):
     max_moves = 256
     centipawn_loss_data = np.zeros((num_games, max_moves))
 
@@ -354,13 +354,13 @@ def simulate_games(num_games=1000):
 
 
 def main():
-    engine = EngineAI(chess.STARTING_BOARD_FEN)
-    print(engine.get_best_move(5, 'nega'))
-    print(engine.get_best_move(5, 'mini'))
+    # engine = EngineAI(chess.STARTING_BOARD_FEN)
+    # print(engine.get_best_move(5, 'nega'))
+    # print(engine.get_best_move(5, 'mini'))
 
 
 
-    # simulate_games()
+    simulate_games()
     # board2 = Board(test_en_passant().board, Board.BLACK, en_passant_square_fen=41)
     # board2.print_board_hex()
 

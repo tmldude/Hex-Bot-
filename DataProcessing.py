@@ -78,43 +78,66 @@ def init_engine():
 
 def evaluate_position(board, time_limit=0.01):
     info = engine.analyse(board, chess.engine.Limit(time=time_limit))
-    score = info['score'].relative.score(mate_score=100000)
+    score = info['score'].relative.score(mate_score=1000)
     return score
 
 def process_moves(moves):
     board = chess.Board()
-    evaluations = []
+    opening = []
+    middlegame = []
+    endgame = []
+    i = 0
     for move in moves:
         board.push(move)
         fen = board.fen()
         evaluation = evaluate_position(board)
-        evaluations.append((fen, evaluation))
 
-    return evaluations
+        if i < 15:
+            opening.append((fen, evaluation))
+        elif i < 30:
+            middlegame.append((fen, evaluation))
+        else:
+            endgame.append((fen, evaluation))
 
-def parse_and_evaluate_pgn(pgn_path, output_path, max_games=10000):
+        i = 0
+
+    return opening, middlegame, endgame
+
+def parse_and_evaluate_pgn(pgn_path, max_games=10000):
     with open(pgn_path, 'r') as pgn_file:
         games_processed = 0
         data = []
+        
         while True:
             game = chess.pgn.read_game(pgn_file)
             if game is None or games_processed >= max_games:
                 break
+
             moves = list(game.mainline_moves())
-            data.append(moves)      
+            data.append(moves)
             games_processed += 1
 
             if games_processed% 1000 == 0:
                 print(f"Collected {games_processed} games")
-        
+    
+    
     with Pool(cpu_count(), initializer=init_engine) as pool:
-        results = pool.map(process_moves, data)
+        opening, middlegame, endgame  = pool.map(process_moves, data)
+
+    open_evaluations = [item for sublist in opening for item in sublist]
+    middle_evaluations = [item for sublist in middlegame for item in sublist]
+    end_evaluations = [item for sublist in endgame for item in sublist]
+
+    print(len(open_evaluations), len(middle_evaluations), len(end_evaluations))
     
-    evaluations = [item for sublist in results for item in sublist]
-    print(len(evaluations))
+    with open('chess_dataset_open.json', 'w') as f:
+        json.dump(open_evaluations, f)
+
+    with open('chess_dataset_middle.json', 'w') as f:
+        json.dump(middle_evaluations, f)
     
-    with open(output_path, 'w') as f:
-        json.dump(evaluations, f)
+    with open('chess_dataset_end.json', 'w') as f:
+        json.dump(end_evaluations, f)
 
 
 if __name__ == "__main__":
@@ -122,6 +145,6 @@ if __name__ == "__main__":
 
     engine_path = "D:/ChessData/stockfish/stockfish-windows-x86-64-avx2.exe"
     pgn_path = "D:\ChessData\lichess_db_standard_rated_2024-02.pgn"
-    output_path = r"C:\Users\tmlaz\Desktop\chesspy\chess_from_pgn_250000.json"
+    # output_path = r"C:\Users\tmlaz\Desktop\chesspy\chess_from_pgn_250000.json"
 
-    parse_and_evaluate_pgn(pgn_path, output_path, max_games=250000)
+    parse_and_evaluate_pgn(pgn_path, max_games=5)
