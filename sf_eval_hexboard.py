@@ -1,12 +1,13 @@
 
 
-import pandas as pd
+# import pandas as pd
 
 import chess
 import chess.engine
 
-from hex_rep import Board
+from board_hexrep import HexBoard
 import random
+
 
 class StockFishEvalBoard:
     '''Takes in a board to find the next move and evaluate the next best position using stockfish
@@ -20,16 +21,16 @@ class StockFishEvalBoard:
 
     def stockfish_evaluation(self, time_limit=0.01):
         board = self.board
-        
+
         with chess.engine.SimpleEngine.popen_uci(StockFishEvalBoard.ENGINE_PATH) as engine:
             result = engine.analyse(board, chess.engine.Limit(time=time_limit))
-            
+
         score = result['score']
-        
+
         return score.relative.score()
-    
+
     def stockfish_next_move(self, time_limit=0.01):
         with chess.engine.SimpleEngine.popen_uci(StockFishEvalBoard.ENGINE_PATH) as engine:
-            result = engine.play(self.board, chess.engine.Limit(time=time_limit))
+            result = engine.play(
+                self.board, chess.engine.Limit(time=time_limit))
         return result.move
-

@@ -1,5 +1,10 @@
 import random
 
+"""
+Monte Carlo Tree Search
+"""
+
+
 class MCTSNode:
     def __init__(self, board, parent=None):
         self.board = board
@@ -23,6 +28,7 @@ class MCTSNode:
     def backpropagate(self, result):
         # Update this node's value and propagate the result to the parent
         pass
+
 
 class MCTS:
     def __init__(self, board):
