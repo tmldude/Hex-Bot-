@@ -10,6 +10,7 @@ import numpy as np
 import random
 import json
 from torch.utils.data import Dataset
+import torch
 
 
 '''These 2 functions generate a random dataset, slow moving'''
@@ -55,10 +56,9 @@ class ChessDataset(Dataset):
         return tensor, evaluation
 
 def fen_to_tensor(fen):
-    piece_dict = {
-        'P': 0, 'N': 1, 'B': 2, 'R': 3, 'Q': 4, 'K': 5,
-        'p': 6, 'n': 7, 'b': 8, 'r': 9, 'q': 10, 'k': 11
-    }
+    piece_list = ['P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k']
+    piece_dict = {piece: i for i, piece in enumerate(piece_list)}
+    
     board = chess.Board(fen)
     tensor = np.zeros((12, 8, 8), dtype=np.float32)
     
@@ -69,7 +69,7 @@ def fen_to_tensor(fen):
             row, col = divmod(square, 8)
             tensor[piece_type, row, col] = 1
     
-    return tensor
+    return torch.tensor(tensor, dtype=torch.float32)
 
 
 def init_engine():

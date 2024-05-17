@@ -8,8 +8,7 @@ import chess.engine
 from hex_rep import Board
 import random
 
-
-class StockFishEvaluate:
+class StockFishEvaluateHexPosition:
     '''Takes in a board to find the next move and evaluate the next best position using stockfish
     Also, holds functions to convert our BOARD into FEN and back into our BOARD
     '''
@@ -29,7 +28,7 @@ class StockFishEvaluate:
 
         self.fen = self.convert_to_fen(self.board, self.active_color, self.can_castle_kingside, self.can_castle_queenside, self.en_passant, self.halfmove_clock, self.fullmove_number)
 
-        self.score = self.stockfish_evaluation(self.fen, StockFishEvaluate.ENGINE_PATH, )
+        self.score = self.stockfish_evaluation(self.fen, StockFishEvaluateHexPosition.ENGINE_PATH, )
         # self.interpretted_score = self.interpret_score(self.score)
 
         
@@ -203,13 +202,9 @@ class StockFishEvaluate:
         else: 
             en_passant_square_fen = last_end_square + 8 if last_end_square else None
 
-        # print(last_end_square)
-        # print(en_passant_square_fen) 
-        # print(can_en_passant)
 
         board = Board(board=integer_value, color_to_move=color_to_move, castle_states=castle_states, last_end_square=last_end_square, en_passant_square_fen=en_passant_square_fen, can_en_passant=can_en_passant)
-        # board.print_board_hex()
-        # board.print_board_hex(board.generate_attack_board(Board.WHITE if color_to_move else Board.BLACK))
+
         return board
 
 

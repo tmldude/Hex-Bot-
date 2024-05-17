@@ -1,7 +1,13 @@
+import chess
 from hex_rep import Board
 
-from evaluate import StockFishEvaluate
-from mini_max import ChessAI
+from StockFishEvalHex import StockFishEvaluateHexPosition
+from ChessAIHexBoard import ChessAIHexBoard
+
+from EngineAI import EngineAI
+
+
+
 
 def init_position() -> Board:
     board = Board()
@@ -292,41 +298,76 @@ def test_draw() -> Board:
 
 
 
-def play_stockfish_ChessAI():
+def play_stockfish_ChessAIHexBoard():
     board = Board(init_position().board, Board.BLACK)
     board.print_board_hex()
 
-    move = ChessAI(board).get_best_move(3, 'nega')
+    move = ChessAIHexBoard(board).get_best_move(3, 'nega')
     move.print_board_hex()
     
     max_iter = 256
     i = 0
     while not move.game_is_over and i < max_iter:
-        stock_fish_eval = StockFishEvaluate(move)
+        stock_fish_eval = StockFishEvaluateHexPosition(move)
         move = stock_fish_eval.stockfish_next_move()
         move = stock_fish_eval.fen_to_board(move)
         move.print_board_hex()
         
-        move = ChessAI(move).get_best_move(3, 'nega')
+        move = ChessAIHexBoard(move).get_best_move(3, 'nega')
         move.print_board_hex()
 
 
         i += 1
 
-   
 
+
+import numpy as np
+import matplotlib.pyplot as plt
+
+
+def simulate_games(num_games=1000):
+    max_moves = 256
+    centipawn_loss_data = np.zeros((num_games, max_moves))
+
+    for game in range(num_games):
+        engine = EngineAI(chess.STARTING_BOARD_FEN)
+
+        print(f"Simulating game {game + 1} / {num_games}")
+        centipawn_losses = engine.play_stock_fish()
+        for i in range(min(len(centipawn_losses), max_moves)):
+            centipawn_loss_data[game, i] = centipawn_losses[i]
+    
+    # Calculate the average centipawn loss per move
+    average_centipawn_loss_per_move = np.mean(centipawn_loss_data, axis=0)
+    
+    # Save the data
+    np.save('centipawn_loss_data.npy', centipawn_loss_data)
+    np.save('average_centipawn_loss_per_move.npy', average_centipawn_loss_per_move)
+    
+    # Plot the average centipawn loss per move
+    plt.plot(range(1, max_moves + 1), average_centipawn_loss_per_move)
+    plt.xlabel('Move Number')
+    plt.ylabel('Average Centipawn Loss')
+    plt.title('Average Centipawn Loss Per Move Over 1000 Games')
+    plt.grid(True)
+    plt.show()
 
 
 def main():
-    play_stockfish_ChessAI()
+    engine = EngineAI(chess.STARTING_BOARD_FEN)
+    print(engine.get_best_move(5, 'nega'))
+    print(engine.get_best_move(5, 'mini'))
 
+
+
+    # simulate_games()
     # board2 = Board(test_en_passant().board, Board.BLACK, en_passant_square_fen=41)
     # board2.print_board_hex()
 
     # move1 = EvaluateBoard(board2).getRandomMove()
     # move1.print_board_hex()
 
-    # stock_fish_eval = StockFishEvaluate(move1)
+    # stock_fish_eval = StockFishEvaluateHexPosition(move1)
     # move2 = stock_fish_eval.stockfish_next_move()
     # move2 = stock_fish_eval.fen_to_board(move2)
     # move2.print_board_hex()
@@ -464,17 +505,14 @@ class ChessEnv:
         return 
     
     def get_reward(self):
-        # Define your reward logic here
         if self.is_game_over():
             if self.is_checkmate():
                 return 1 if self.turn == self.WHITE else -1
             elif self.is_draw():
                 return 0
-        # Intermediate rewards can be added here
         return self.material_balance()
     
     def material_balance(self):
-        # Calculate material balance as a simple heuristic
         white_material = sum(self.PIECE_VALUES[piece] for piece in self.get_pieces(self.WHITE))
         black_material = sum(self.PIECE_VALUES[piece] for piece in self.get_pieces(self.BLACK))
         return white_material - black_material

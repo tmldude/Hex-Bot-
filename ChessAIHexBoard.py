@@ -8,7 +8,7 @@ import chess.engine
 from hex_rep import Board
 import random
 
-class ChessAI:
+class ChessAIHexBoard:
     '''Takes in a board to find the next move and evaluate the next best position, using our AI'''
     def __init__(self, board):
         self.board = board 
@@ -24,6 +24,7 @@ class ChessAI:
     
     def evaluate_board(self, board):
         return board.get_reward()
+    
 
     def minimax(self, board, depth, alpha, beta, is_maximizing):
         if depth == 0 or board.game_is_over:
@@ -66,7 +67,7 @@ class ChessAI:
                 break
         return max_eval
 
-    def get_best_move(self, max_depth, engine = 'mini'):
+    def get_best_move(self, max_depth, engine):
         best_move = None
         best_value = float('-inf')
         alpha = float('-inf')
@@ -79,6 +80,9 @@ class ChessAI:
                 board_value = self.minimax(move, max_depth - 1, alpha, beta, False)
             if engine == 'nega':
                 board_value = self.negamax(move, max_depth - 1, alpha, beta, False)
+            else:
+                board_value = self.getRandomMove(move, max_depth - 1, alpha, beta, False)
+
 
             if board_value > best_value:
                 best_value = board_value
