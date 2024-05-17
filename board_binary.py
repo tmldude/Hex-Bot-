@@ -97,11 +97,25 @@ class BinaryBoard:
     # LAST_END_SQUARE = 67
 
     def __init__(self, fen: str) -> None:
-        self.piece_boards = self.fen_to_binary_boards(fen)
+        piece_boards = self.fen_to_binary_boards(fen)
 
         self.combined_board = 0
         for bitboard in self.piece_boards.values():
             self.combined_board |= bitboard
+
+        self.pawns_white = piece_boards['P']
+        self.knights_white = piece_boards['N']
+        self.bishops_white = piece_boards['B']
+        self.rooks_white = piece_boards['R']
+        self.queens_white = piece_boards['Q']
+        self.kings_white = piece_boards['K']
+
+        self.pawns_black = piece_boards['p']
+        self.knights_black = piece_boards['n']
+        self.bishops_black = piece_boards['b']
+        self.rooks_black = piece_boards['r']
+        self.queens_black = piece_boards['q']
+        self.kings_black = piece_boards['k']
 
     """
     Given a board and a square, returns the hex number at the square
