@@ -98,9 +98,9 @@ class EngineAI:
         # print(output[0][0])
         return output[0][0]
 
-    def minimax(self, board, eval_fn, depth, alpha, beta, is_maximizing, color):
+    def minimax(self, board, depth, alpha, beta, is_maximizing, color):
         if depth == 0 or board.is_game_over():
-            return color * eval_fn(board)
+            return color * self.evaluate_board_CNN_torch(board)
 
         legal_moves = list(board.legal_moves)
 
@@ -129,9 +129,9 @@ class EngineAI:
                     break
             return min_eval
 
-    def negamax(self, board, eval_fn, depth, alpha, beta, color):
+    def negamax(self, board, depth, alpha, beta, color):
         if depth == 0 or board.is_game_over():
-            return color * eval_fn(board)
+            return color * self.evaluate_board_CNN_torch(board)
 
         max_eval = float('-inf')
         legal_moves = list(board.legal_moves)
@@ -196,7 +196,7 @@ class EngineAI:
         print(" +-----------------+")
         print("  a b c d e f g h")
 
-    def play_stock_fish(self, eval_fn):
+    def play_stock_fish(self):
         max_iter = 256
         i = 0
 
@@ -217,7 +217,7 @@ class EngineAI:
                 move = stock.stockfish_next_move()
                 board.push(move)
             else:
-                initial_score = eval_fn(board)
+                initial_score = self.evaluate_board_CNN_torch(board)
 
                 # print(f"initial_score_CNN: {initial_score}")
                 move = self.get_best_move(2, 'nega')
