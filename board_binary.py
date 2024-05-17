@@ -1,121 +1,33 @@
-from utils import add_rightmost_hex_digit
+from utils import pprint_binboard
 
 
 class BinaryBoard:
-    '''
-    Board class for representing a chess board
-
-    INDEXES: bits 0-255 (hex bit 0-63)
-    256 bit, 64 hex bit representation. Every 4 bits (1hex) is a piece
-    0___ -> the piece mask
-    _000 -> the color of the piece
-
-    important outputs: Board.getallnebitboardtboardstates
-        -> outputs all legal moves from a position including thier game states
-
-
-    Bits beyond 256 are state bits:
-    the 64th hex bit
-    STATE: value === 0 (WHITE) then white to move
-    STATE: value === 8 (BLACK) then black to move
-    STATE: value === 0 + 1 (WHITE + 1) then white checkmate
-    STATE: value === 8 + 1 (BLACK + 1) then black checkmate
-
-    the 65th digit from the hex number
-    STATE: 0b0001  represents king side castle WHITE
-    STATE: 0b0010 represents queen side castle WHITE
-    STATE: 0b0100 represents king side caslte BLACK
-    STATE: 0b1000 represents queen side caslte BLACK
-
-    All state values are 0 for available and 1 for not available
-    - if king moves, all state set to 1
-    - if rook moves on queen or king side, that state is set to 1
-
-
-    ebitboardtracts the 66th digit from the hex number
-    the 66th digit will hold state
-    value: 0 - NO EN passant
-    value: 1 - last move was a pawn that was moved 2
-
-    67th
-    this bit will hold where the last piece square ended on - for en passant
-    00xbitboard where bitboardbitboard is a number between 0-63
-
-    # this bit will hold the last piece that was moved stored in the 67th hex digit
-    ARCHIVE LAST MOVE
-                      # helpful for en passant, if state en passant is 1, this will say if the last move is legal or not'''
-
-    # Define constants for piece types
-    PAWN = 1
-    ROOK = 2
-    KNIGHT = 3
-    BISHOP = 4
-    QUEEN = 5
-    KING = 6
 
     # Constants for colors
     WHITE = 0
-    BLACK = 8
-
-    PIECE_MASK = 7
-    COLOR_MASK = 8
+    BLACK = 1
 
     # BOARD MASKS
 
-    ALL_DEFINED = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
-
-    ALL_WHITE = 0x0
-    ALL_WHITE_PAWNS = 0x1111111111111111111111111111111111111111111111111111111111111111
-    ALL_WHITE_ROOKS = 0x2222222222222222222222222222222222222222222222222222222222222222
-    ALL_WHITE_KNIGHTS = 0x3333333333333333333333333333333333333333333333333333333333333333
-    ALL_WHITE_BISHOPS = 0x4444444444444444444444444444444444444444444444444444444444444444
-    ALL_WHITE_QUEENS = 0x5555555555555555555555555555555555555555555555555555555555555555
-    ALL_WHITE_KINGS = 0x6666666666666666666666666666666666666666666666666666666666666666
-
-    ALL_BLACK = 0x8888888888888888888888888888888888888888888888888888888888888888
-    ALL_BLACK_PAWNS = ALL_WHITE_PAWNS | ALL_BLACK
-    ALL_BLACK_ROOKS = ALL_WHITE_ROOKS | ALL_BLACK
-    ALL_BLACK_KNIGHTS = ALL_WHITE_KNIGHTS | ALL_BLACK
-    ALL_BLACK_BISHOPS = ALL_WHITE_BISHOPS | ALL_BLACK
-    ALL_BLACK_QUEENS = ALL_WHITE_QUEENS | ALL_BLACK
-    ALL_BLACK_KINGS = ALL_WHITE_KINGS | ALL_BLACK
+    ALL_DEFINED = 0xffffffffffffffff
 
     # BOUNDARIES
 
-    NOT_A_FILE = 0b1111111011111110111111101111111011111110111111101111111011111110
-    NOT_H_FILE = 0b111111101111111011111110111111101111111011111110111111101111111
+    NOT_A_FILE = 0xfefefefefefefefe
+    NOT_H_FILE = 0x7f7f7f7f7f7f7f7f
 
-    NOT_AB_FILE = 0b111111100111111100111111100111111100111111100111111100111111100111111100
-    NOT_GH_FILE = 0b1111111001111111001111111001111111001111111001111111001111111001111111
+    NOT_AB_FILE = 0xfcfcfcfcfcfcfcfc
+    NOT_GH_FILE = 0x3f3f3f3f3f3f3f3f
 
-    NOT_RANK_1 = ~0b000000000000000000000000000000000000000000000000000000001111111
-    NOT_RANK_8 = ~0b111111100000000000000000000000000000000000000000000000000000000
-
-    # COLOR_TO_MOVE = 64
-    # CASTLE_STATES = 65
-    # EN_PASSANT_STATE = 66
-    # LAST_END_SQUARE = 67
+    NOT_RANK_1 = ~0xff
+    NOT_RANK_8 = ~0xff00000000000000
 
     def __init__(self, fen: str) -> None:
-        piece_boards = self.fen_to_binary_boards(fen)
+        self.piece_boards = self.fen_to_binary_boards(fen)
 
         self.combined_board = 0
         for bitboard in self.piece_boards.values():
             self.combined_board |= bitboard
-
-        self.pawns_white = piece_boards['P']
-        self.knights_white = piece_boards['N']
-        self.bishops_white = piece_boards['B']
-        self.rooks_white = piece_boards['R']
-        self.queens_white = piece_boards['Q']
-        self.kings_white = piece_boards['K']
-
-        self.pawns_black = piece_boards['p']
-        self.knights_black = piece_boards['n']
-        self.bishops_black = piece_boards['b']
-        self.rooks_black = piece_boards['r']
-        self.queens_black = piece_boards['q']
-        self.kings_black = piece_boards['k']
 
     """
     Given a board and a square, returns the hex number at the square
@@ -129,11 +41,12 @@ class BinaryBoard:
 
     # FEN
 
-    def fen_to_binary_boards(fen: str) -> dict[str, int]:
+    def fen_to_binary_boards(self, fen: str) -> dict[str, int]:
         pieces = 'PNBRQKpnbrqk'
         boards = {piece: 0 for piece in pieces}
 
-        positions = fen.split(' ')[0]
+        split = fen.split(' ')
+        positions = split[0]
         row = 0
         for rank in positions.split('/'):
             col = 0
@@ -149,7 +62,7 @@ class BinaryBoard:
 
         return boards
 
-    # MOVES
+    # LINEAR MOVES
 
     @staticmethod
     def nortOne(b) -> int:
@@ -162,6 +75,8 @@ class BinaryBoard:
     @staticmethod
     def eastOne(b) -> int:
         return (b << 1) & BinaryBoard.NOT_A_FILE
+
+    # DIAG MOVES
 
     @staticmethod
     def noEaOne(b) -> int:
@@ -186,6 +101,8 @@ class BinaryBoard:
     @staticmethod
     def noNoEa(bitboard) -> int:
         return (bitboard << 17) & BinaryBoard.NOT_A_FILE
+
+    # KNIGHT MOVES
 
     @staticmethod
     def noEaEa(bitboard) -> int:
@@ -217,92 +134,87 @@ class BinaryBoard:
 
     # SLIDE MOVES
 
-    # TODO: fix bitboard masks
-    def _get_slide(self, bitboard, direction, boundary1, boundary2):
-        next_boards: list[int] = []
+    def _get_slide(self, bitboard, direction, boundary1, boundary2) -> int:
+        next_boards = 0
 
         dir_bitboard: int = direction(bitboard)
         not_blocked = True
 
         while not_blocked and (dir_bitboard & boundary1) and (dir_bitboard & boundary2):
-            next_boards.append(dir_bitboard)
+            next_boards |= dir_bitboard
 
             # update if hitting white or black piece to stop while loop
             not_blocked = dir_bitboard & self.combined_board == 0
-            # print(hex(not_blocked))
+
             # moving up, down, left, right, or diag one position
             dir_bitboard = direction(dir_bitboard)
 
         added = False
         if dir_bitboard & ~boundary1 and not_blocked:
-            next_boards.append(dir_bitboard)
+            next_boards |= dir_bitboard
             added = True
 
         if dir_bitboard & ~boundary2 and not_blocked and not added:
-            next_boards.append(dir_bitboard)
+            next_boards |= dir_bitboard
 
         return next_boards
 
-    def getNoSlide(self, bitboard) -> list[int]:
+    def getNoSlide(self, bitboard) -> int:
         return self._get_slide(bitboard, BinaryBoard.nortOne, BinaryBoard.NOT_RANK_8, BinaryBoard.ALL_DEFINED)
 
-    def getSoSlide(self, bitboard) -> list[int]:
+    def getSoSlide(self, bitboard) -> int:
         return self._get_slide(bitboard, BinaryBoard.soutOne, BinaryBoard.NOT_RANK_1, BinaryBoard.ALL_DEFINED)
 
-    def getEaSlide(self, bitboard) -> list[int]:
+    def getEaSlide(self, bitboard) -> int:
         return self._get_slide(bitboard, BinaryBoard.eastOne, BinaryBoard.NOT_H_FILE, BinaryBoard.ALL_DEFINED)
 
-    def getWeSlide(self, bitboard) -> list[int]:
+    def getWeSlide(self, bitboard) -> int:
         return self._get_slide(bitboard, BinaryBoard.westOne, BinaryBoard.NOT_A_FILE, BinaryBoard.ALL_DEFINED)
 
-    def getNoEaSlide(self, bitboard) -> list[int]:
+    def getNoEaSlide(self, bitboard) -> int:
         return self._get_slide(bitboard, BinaryBoard.noEaOne, BinaryBoard.NOT_RANK_8, BinaryBoard.NOT_H_FILE)
 
-    def getNoWeSlide(self, bitboard) -> list[int]:
+    def getNoWeSlide(self, bitboard) -> int:
         return self._get_slide(bitboard, BinaryBoard.noWeOne, BinaryBoard.NOT_RANK_8, BinaryBoard.NOT_A_FILE)
 
-    def getSoEaSlide(self, bitboard) -> list[int]:
+    def getSoEaSlide(self, bitboard) -> int:
         return self._get_slide(bitboard, BinaryBoard.soEaOne, BinaryBoard.NOT_RANK_1, BinaryBoard.NOT_H_FILE)
 
-    def getSoWeSlide(self, bitboard) -> list[int]:
+    def getSoWeSlide(self, bitboard) -> int:
         return self._get_slide(bitboard, BinaryBoard.soWeOne, BinaryBoard.NOT_RANK_1, BinaryBoard.NOT_A_FILE)
 
     # PIECE MOVES
 
-    def _get_moves(self, bitboard: int, direction_fns) -> list[int]:
-        nebitboardt_boards: list[int] = []
+    def _get_moves(self, bitboard: int, direction_fns) -> int:
+        next_boards = 0
 
         for get_dir_boards in direction_fns:
             boards = get_dir_boards(bitboard)
+            next_boards |= boards
 
-            if type(boards) == list:
-                nebitboardt_boards += boards
-            else:
-                nebitboardt_boards.append(boards)
+        return next_boards
 
-        return nebitboardt_boards
-
-    def knight_moves(self, bitboard: int) -> list[int]:
+    def knight_moves(self, bitboard: int) -> int:
         directions = [self.noNoEa, self.noEaEa, self.noNoWe, self.noWeWe,
                       self.soSoEa, self.soEaEa, self.soSoWe, self.soWeWe]
         return self._get_moves(bitboard, directions)
 
-    def rook_moves(self, bitboard: int) -> list[int]:
+    def rook_moves(self, bitboard: int) -> int:
         directions = [self.getNoSlide, self.getEaSlide,
                       self.getSoSlide, self.getWeSlide]
         return self._get_moves(bitboard, directions)
 
-    def bishop_moves(self, bitboard: int) -> list[int]:
+    def bishop_moves(self, bitboard: int) -> int:
         directions = [self.getNoEaSlide, self.getNoWeSlide,
                       self.getSoEaSlide, self.getSoWeSlide]
         return self._get_moves(bitboard, directions)
 
-    def queen_moves(self, bitboard: int) -> list[int]:
+    def queen_moves(self, bitboard: int) -> int:
         directions = [self.getNoSlide, self.getEaSlide, self.getSoSlide, self.getWeSlide,  # rook moves
                       self.getNoEaSlide, self.getNoWeSlide, self.getSoEaSlide, self.getSoWeSlide]  # bishop moves
         return self._get_moves(bitboard, directions)
 
-    def king_moves(self, bitboard: int) -> list[int]:
+    def king_moves(self, bitboard: int) -> int:
         directions = [self.nortOne, self.soutOne, self.eastOne, self.westOne,
                       self.noEaOne, self.noWeOne, self.soEaOne, self.soWeOne]
         return self._get_moves(bitboard, directions)
@@ -331,54 +243,50 @@ class BinaryBoard:
 
         return attacks
 
+    # MAIN FUNCTIONS
+
     def generate_attack_board(self, color_to_look_for) -> int:
         attack_board = 0x0
-        # print(hex(self.attack_board))
 
-        # print(color)
-        # self.print_board_hex(board)
-        # if other:
-        #     print(hex(self.board))
-        #     print(hex(other))
-        for i in range(64):
-            # print(i)
+        if color_to_look_for == self.WHITE:
+            attack_board |= self.rook_moves(self.piece_boards['R'])
+            attack_board |= self.knight_moves(self.piece_boards['N'])
+            attack_board |= self.bishop_moves(self.piece_boards['B'])
+            attack_board |= self.queen_moves(self.piece_boards['Q'])
+            attack_board |= self.king_moves(self.piece_boards['K'])
+            attack_board |= self.pawn_attacks_white(self.piece_boards['P'])
+        else:
+            attack_board |= self.rook_moves(self.piece_boards['r'])
+            attack_board |= self.knight_moves(self.piece_boards['n'])
+            attack_board |= self.bishop_moves(self.piece_boards['b'])
+            attack_board |= self.queen_moves(self.piece_boards['q'])
+            attack_board |= self.king_moves(self.piece_boards['k'])
+            attack_board |= self.pawn_attacks_black(self.piece_boards['p'])
 
-            square = self.binary_to_piece(i)
-            piece = square & BinaryBoard.PIECE_MASK
-            # print(bin(piece), bin(square), bin(self.PIECE_MASK))
-            color = square & BinaryBoard.COLOR_MASK
+        return attack_board & self.ALL_DEFINED
 
-            bitboard = 0x1 << (i * 4)
+    """
+    Output: 8 x 8 x 14 tensor (last 2 are attack boards for white and black, resp.)
+    """
 
-            if square == 0 or color != color_to_look_for:
-                continue
-            elif piece == BinaryBoard.PAWN and color == BinaryBoard.WHITE:
-                attack_board |= self.pawn_attacks_white(bitboard)
+    def generate_board_tensor(self) -> list[list[list[int]]]:
+        boards = []
 
-            elif piece == BinaryBoard.PAWN and color == BinaryBoard.BLACK:
-                attack_board |= self.pawn_attacks_black(bitboard)
+        boards.append(self.piece_boards['R'])
+        boards.append(self.piece_boards['N'])
+        boards.append(self.piece_boards['B'])
+        boards.append(self.piece_boards['Q'])
+        boards.append(self.piece_boards['K'])
+        boards.append(self.piece_boards['P'])
+        boards.append(self.piece_boards['r'])
+        boards.append(self.piece_boards['n'])
+        boards.append(self.piece_boards['b'])
+        boards.append(self.piece_boards['q'])
+        boards.append(self.piece_boards['k'])
+        boards.append(self.piece_boards['p'])
 
-            elif piece == BinaryBoard.KNIGHT:
-                for move in self.knight_moves(bitboard):
-                    attack_board |= move
-
-            elif piece == BinaryBoard.ROOK:
-                for move in self.rook_moves(bitboard):
-                    attack_board |= move
-
-            elif piece == BinaryBoard.BISHOP:
-                for move in self.bishop_moves(bitboard):
-                    attack_board |= move
-
-            elif piece == BinaryBoard.QUEEN:
-                for move in self.queen_moves(bitboard):
-                    attack_board |= move
-
-            elif piece == BinaryBoard.KING:
-                for move in self.king_moves(bitboard):
-                    attack_board |= move
-
-        return attack_board
+        boards.append(self.generate_attack_board(0))  # white attack board
+        boards.append(self.generate_attack_board(1))  # black attack board
 
     # UTILS
 
@@ -419,8 +327,19 @@ class BinaryBoard:
         print(print_str)
 
 
+TEST_FENS = ["rnbqkbnr/pppppppp/8/1p7/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0",
+             "1rq2bnr/p3p1pp/1p2bk2/2pP1p2/5PnN/3P2PP/PP2P3/1RBQKBNR w - - 7 15",
+             "r1bq1kn1/pppp4/2n4r/3Pp1pP/2B2p2/b2QP2P/PPP1KP2/RNB3NR w - - 3 10",
+             "r1bqk1nr/p1pp1p1p/1pn1p3/6p1/8/1PP1BPP1/P1Q1P2P/RN2KBNR w KQkq - 0 8"]
+
+
 def main():
-    pass
+    fen_string = TEST_FENS[0]
+    board = BinaryBoard(fen_string)
+    pprint_binboard(board.combined_board)
+    pprint_binboard(board.generate_attack_board(0))
+    pprint_binboard(board.generate_attack_board(1))
+    print(bin(board.generate_attack_board(1)))
 
 
 if __name__ == "__main__":

@@ -28,3 +28,30 @@ def print_number_board():
         string = string + '\n'  # Add newline after each row
 
     print(string)
+
+
+def pprint_binboard(board):
+    print_str = ''
+    for i in range(7, -1, -1):
+        for j in range(8):
+            bit_position = i * 8 + j
+            if board & (1 << bit_position):
+                print_str += '1 '  # Occupied
+            else:
+                print_str += '0 '  # Empty
+        print_str += '\n'
+    print(print_str)
+
+
+def bitboard_to_matrix(bitboard: int) -> list[list[int]]:
+    matrix = []
+    for row in range(8):
+        current_row = []
+        for col in range(8):
+            index = (7 - row) * 8 + col
+            if bitboard & (1 << index):
+                current_row.append(1)
+            else:
+                current_row.append(0)
+        matrix.append(current_row)
+    return matrix
