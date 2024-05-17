@@ -1,4 +1,4 @@
-from utils import pprint_binboard
+from utils import pprint_binboard, bitboard_to_matrix
 
 
 class BinaryBoard:
@@ -269,24 +269,31 @@ class BinaryBoard:
     Output: 8 x 8 x 14 tensor (last 2 are attack boards for white and black, resp.)
     """
 
-    def generate_board_tensor(self) -> list[list[list[int]]]:
-        boards = []
+    def generate_board_matrix(self) -> list[list[list[int]]]:
+        boards = [self.piece_boards['R'],
+                  self.piece_boards['N'],
+                  self.piece_boards['B'],
+                  self.piece_boards['Q'],
+                  self.piece_boards['K'],
+                  self.piece_boards['P'],
+                  self.piece_boards['r'],
+                  self.piece_boards['n'],
+                  self.piece_boards['b'],
+                  self.piece_boards['q'],
+                  self.piece_boards['k'],
+                  self.piece_boards['p'],
+                  self.generate_attack_board(0),  # white attack board
+                  self.generate_attack_board(1)  # black attack board
+                  ]
 
-        boards.append(self.piece_boards['R'])
-        boards.append(self.piece_boards['N'])
-        boards.append(self.piece_boards['B'])
-        boards.append(self.piece_boards['Q'])
-        boards.append(self.piece_boards['K'])
-        boards.append(self.piece_boards['P'])
-        boards.append(self.piece_boards['r'])
-        boards.append(self.piece_boards['n'])
-        boards.append(self.piece_boards['b'])
-        boards.append(self.piece_boards['q'])
-        boards.append(self.piece_boards['k'])
-        boards.append(self.piece_boards['p'])
+        matrix = []
 
-        boards.append(self.generate_attack_board(0))  # white attack board
-        boards.append(self.generate_attack_board(1))  # black attack board
+        for board in boards:
+            matrix.append(bitboard_to_matrix(board))
+
+        print(matrix)
+
+        return matrix
 
     # UTILS
 
@@ -340,6 +347,7 @@ def main():
     pprint_binboard(board.generate_attack_board(0))
     pprint_binboard(board.generate_attack_board(1))
     print(bin(board.generate_attack_board(1)))
+    board.generate_board_matrix()
 
 
 if __name__ == "__main__":
