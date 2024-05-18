@@ -5,7 +5,7 @@
 import chess
 import chess.engine
 
-from board_hexrep import HexBoard
+from archive.board_hex import HexBoard
 import random
 
 

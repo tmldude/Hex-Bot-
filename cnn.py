@@ -1,17 +1,12 @@
 from multiprocessing import Pool, cpu_count, freeze_support
-
 import os
-# import pandas as pd
-
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torch.optim.lr_scheduler import ReduceLROnPlateau
-
-from preprocessing import ChessDataset
-import chess
-import numpy as np
+from preprocess import ChessDataset
 
 
 class ChessCNN(nn.Module):

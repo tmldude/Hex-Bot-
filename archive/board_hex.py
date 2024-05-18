@@ -1,6 +1,3 @@
-from utils import add_rightmost_hex_digit
-
-
 class HexBoard:
     '''
     Board class for representing a chess board
@@ -1076,6 +1073,13 @@ class HexBoard:
         print(action)
         return self.generate_all_possible_next_board_states()[action], self.get_reward(), self.game_is_over
 
+
+'''Takes in a hex number and a hex digit to add, returns the hex number with the new digit'''
+
+
+def add_rightmost_hex_digit(number, digit_piece) -> int:
+    updated_board: int = (number << 4) | digit_piece
+    return updated_board
 
 # '''NOT CURRENTLY BEING USED : Function takes in piece ?? outputs color integer??'''
 #     def get_color(self, color_mask):

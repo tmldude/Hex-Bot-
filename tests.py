@@ -1,4 +1,5 @@
-from board_hexrep import HexBoard
+from archive.board_hex import HexBoard
+from bitboard import Bitboard
 
 PAWN = 1
 ROOK = 2
@@ -394,3 +395,23 @@ def test_draw() -> HexBoard:
     board.add_piece(60, board.BLACK | board.KING)
 
     return board
+
+
+TEST_FENS = ["rnbqkbnr/pppppppp/8/1p7/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0",
+             "1rq2bnr/p3p1pp/1p2bk2/2pP1p2/5PnN/3P2PP/PP2P3/1RBQKBNR w - - 7 15",
+             "r1bq1kn1/pppp4/2n4r/3Pp1pP/2B2p2/b2QP2P/PPP1KP2/RNB3NR w - - 3 10",
+             "r1bqk1nr/p1pp1p1p/1pn1p3/6p1/8/1PP1BPP1/P1Q1P2P/RN2KBNR w KQkq - 0 8"]
+
+
+def main():
+    fen_string = TEST_FENS[0]
+    board = Bitboard(fen_string)
+    Bitboard.pprint_board(board.combined_board)
+    Bitboard.pprint_boardpprint_board(board.generate_attack_board(0))
+    Bitboard.pprint_board(board.generate_attack_board(1))
+    Bitboard.print(bin(board.generate_attack_board(1)))
+    board.generate_board_matrix()
+
+
+if __name__ == "__main__":
+    main()
