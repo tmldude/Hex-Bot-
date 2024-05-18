@@ -46,11 +46,11 @@ class ChessEvaluator:
         self.sf_engine.configure({"Skill Level": self.sf_level})
 
     def stockfish(self, board, time_limit=0.01):
-        with self.sf_engine.popen_uci(self.sf_path) as sf:
-            score = sf.analyse(board, chess.engine.Limit(
-                time=time_limit))['score'].relative.score()
+        
+        score = self.sf_engine.analyse(board, chess.engine.Limit(
+            time=time_limit))['score'].relative.score()
 
-            move = sf.play(board, chess.engine.Limit(time=time_limit)).move
+        move = self.sf_engine.play(board, chess.engine.Limit(time=time_limit)).move
 
         return score, move
 
@@ -71,8 +71,17 @@ class ChessEvaluator:
 
     def _cnn_keras_score(self, board):
         fen = board.fen()
-        matrix = self.fen_to_matrix(fen)
+        matrix = self.fen_to_matrix_OMEnd(fen)
+
+        matrix = np.array(matrix)
+        if matrix.shape != (22, 8, 8):
+            raise ValueError(f"Unexpected matrix shape: {matrix.shape}")
+    
+        # Add a batch dimension
+        matrix = np.expand_dims(matrix, axis=0)
+
         output = self.model.predict(matrix, verbose=0)
+
 
         # print(output[0][0])
         return output[0][0]

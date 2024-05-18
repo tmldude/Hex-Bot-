@@ -48,7 +48,7 @@ class ChessEngine:
         centipawn_losses = []
 
         while not board.is_game_over() and i < max_iter:
-            # self.print_board_fancy(board)
+            self.print_board_fancy(board)
 
             if stockfish_first:
                 score, move = self.eval_stockfish(board)
