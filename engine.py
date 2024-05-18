@@ -7,13 +7,14 @@ import torch.nn as nn
 from bitboard import Bitboard
 from eval import ChessEvaluator, MODEL_TYPES
 from cnn import ChessCNN
-from mcts import MCTS
+from archive.mcts import MCTS
 
 MODEL_PATH = './models/chess_cnn_model_50k.pth'
 SF_PATH = "/usr/local/opt/stockfish"
 
 DECISIONS = {'minimax': 0,
-             'negamax': 1}
+             'negamax': 1,
+             'mcts': 2}
 
 
 class Engine:
@@ -21,18 +22,20 @@ class Engine:
     '''Takes in a board to find the next move and evaluate the next best position, using our AI'''
 
     def __init__(self,
-                 board,
+                 fen,
                  decisions=DECISIONS.get('minimax'),
                  model_type=MODEL_TYPES.get('torch'),
                  model_path=MODEL_PATH,
                  sf_level=7,
-                 sf_path=SF_PATH):
-        self.board = chess.Board(board)
+                 sf_path=SF_PATH,
+                 depth=3):
+        self.board = chess.Board(fen)
         self.decisions = decisions  # 'mini' or 'nega'
         self.eval = ChessEvaluator(model_path=model_path,
                                    model_type=model_type,
                                    sf_level=sf_level,
                                    sf_path=sf_path)
+        self.depth = depth
 
     def play_stock_fish(self):
         i = 0
@@ -45,16 +48,16 @@ class Engine:
         centipawn_losses = []
 
         while not board.is_game_over() and i < max_iter:
-            self.print_board_fancy(board)
+            # self.print_board_fancy(board)
 
             if stockfish_first:
                 score, move = self.eval.stockfish(board)
                 # print(f"initial_score_stock: {initial_score}")
                 board.push(move)
             else:
-                score = self.eval.model(board)
+                score = self.eval.model_score(board)
                 # print(f"initial_score_CNN: {initial_score}")
-                move = self.get_best_move(2)
+                move = self.get_best_move(self.depth)
                 board.push(move)
 
             stockfish_first = 0 if stockfish_first else 1
@@ -91,7 +94,6 @@ class Engine:
                 board_value = self._decide_negamax(
                     self.board, max_depth - 1, alpha, beta, color)
             else:
-                print('fuck')
                 board_value = self._decide_negamax(
                     self.board, max_depth - 1, alpha, beta, color)
             self.board.pop()
@@ -114,7 +116,7 @@ class Engine:
 
     def _decide_minimax(self, board, depth, alpha, beta, is_maximizing, color):
         if depth == 0 or board.is_game_over():
-            return color * self.eval.model(board)
+            return color * self.eval.model_score(board)
 
         legal_moves = list(board.legal_moves)
 
@@ -145,7 +147,7 @@ class Engine:
 
     def _decide_negamax(self, board, depth, alpha, beta, color):
         if depth == 0 or board.is_game_over():
-            return color * self.eval.model(board)
+            return color * self.eval.model_score(board)
 
         max_eval = float('-inf')
         legal_moves = list(board.legal_moves)
@@ -163,30 +165,6 @@ class Engine:
         return max_eval
 
     # UTILS
-
-    @staticmethod
-    def fen_to_tensor(fen):
-        piece_list = ['P', 'N', 'B', 'R', 'Q',
-                      'K', 'p', 'n', 'b', 'r', 'q', 'k']
-        piece_dict = {piece: i for i, piece in enumerate(piece_list)}
-
-        board = chess.Board(fen)
-        tensor = np.zeros((12, 8, 8), dtype=np.float32)
-
-        for square in chess.SQUARES:
-            piece = board.piece_at(square)
-            if piece:
-                piece_type = piece_dict[piece.symbol()]
-                row, col = divmod(square, 8)
-                tensor[piece_type, row, col] = 1
-
-        return torch.tensor(tensor, dtype=torch.float32).unsqueeze(0)
-
-    @staticmethod
-    def fen_to_matrix(fen):
-        bitboard = Bitboard(fen)
-        return bitboard.generate_board_matrix()
-
     def print_board_fancy(self, board=None):
         if board is None:
             board = self.board

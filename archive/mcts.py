@@ -32,7 +32,7 @@ class MCTSNode:
 
     def simulate(self, evaluate):
         current_board = self.board.copy()
-        while not current_board.game_is_over():
+        while not current_board.is_game_over():
             legal_moves = list(current_board.legal_moves)
             move = np.random.choice(legal_moves)
             current_board.push(move)
@@ -56,13 +56,13 @@ class MCTS:
             node = self.root
             while node.children:
                 node = node.select_child()
-            if not node.board.game_is_over:
+            if not node.board.is_game_over():
                 node.expand()
                 result = node.simulate(self.evalulation)
                 node.backpropagate(result)
 
     def best_move(self):
         best_child = max(self.root.children, key=lambda child: child.visits)
-        return best_child.board.peek()
+        return best_child
 
 
