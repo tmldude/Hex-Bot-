@@ -1,7 +1,12 @@
 import chess
 import torch
 from cnn import ChessCNN
-from tensorflow.keras.models import load_model
+# from tensorflow.keras.models import load_model
+
+
+def load_model(model_path):
+    pass
+
 
 MODEL_TYPES = {'torch': 0,
                'keras': 1}
@@ -14,16 +19,16 @@ class ChessEvaluator:
     '''
 
     def __init__(self,
-                 model_type=MODEL_TYPES.get('keras'),
-                 model_path='chess_model_250k.h5',
-                 sf_level=10,
-                 sf_path="D:\ChessData\stockfish\stockfish-windows-x86-64-avx2.exe"):
+                 model_type,
+                 model_path,
+                 sf_level,
+                 sf_path):
         self.model_type = model_type
         self.model_path = model_path
 
         if self.model_type == MODEL_TYPES.get('torch'):
             self.model = ChessCNN()
-            state_dict = torch.load(model_path)
+            state_dict = torch.load(model_path, map_location=torch.device('cpu'))
             self.model.load_state_dict(state_dict)
             self.model.eval()
         else:  # KERAS

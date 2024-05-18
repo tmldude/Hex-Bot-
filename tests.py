@@ -403,15 +403,15 @@ TEST_FENS = ["rnbqkbnr/pppppppp/8/1p7/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0",
              "r1bqk1nr/p1pp1p1p/1pn1p3/6p1/8/1PP1BPP1/P1Q1P2P/RN2KBNR w KQkq - 0 8"]
 
 
-def main():
-    fen_string = TEST_FENS[0]
-    board = Bitboard(fen_string)
-    Bitboard.pprint_board(board.combined_board)
-    Bitboard.pprint_boardpprint_board(board.generate_attack_board(0))
-    Bitboard.pprint_board(board.generate_attack_board(1))
-    Bitboard.print(bin(board.generate_attack_board(1)))
-    board.generate_board_matrix()
+# def main():
+#     fen_string = TEST_FENS[0]
+#     board = Bitboard(fen_string)
+#     Bitboard.pprint_board(board.combined_board)
+#     Bitboard.pprint_boardpprint_board(board.generate_attack_board(0))
+#     Bitboard.pprint_board(board.generate_attack_board(1))
+#     Bitboard.print(bin(board.generate_attack_board(1)))
+#     board.generate_board_matrix()
 
 
-if __name__ == "__main__":
-    main()
+# if __name__ == "__main__":
+#     main()
