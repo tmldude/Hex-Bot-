@@ -23,7 +23,7 @@ class BinaryBoard:
     NOT_RANK_8 = ~0xff00000000000000
 
     def __init__(self, fen: str) -> None:
-        self.piece_boards = self.fen_to_binary_boards(fen)
+        self.piece_boards, self.board_data = self.fen_to_binary_boards(fen)
 
         self.combined_board = 0
         for bitboard in self.piece_boards.values():
@@ -40,6 +40,23 @@ class BinaryBoard:
         return self.combined_board >> (square & 0x1)
 
     # FEN
+
+    def fen_to_square_number(self, fen_square):
+        if fen_square == "-":
+            return -1
+
+        files = "abcdefgh"
+        ranks = "87654321"
+
+        file = fen_square[0]
+        rank = fen_square[1]
+
+        file_index = files.index(file)
+        rank_index = ranks.index(rank)
+
+        square_number = rank_index * 8 + file_index
+
+        return square_number
 
     def fen_to_binary_boards(self, fen: str) -> dict[str, int]:
         pieces = 'PNBRQKpnbrqk'
@@ -60,7 +77,20 @@ class BinaryBoard:
                     col += 1
             row += 1
 
-        return boards
+        color = 0 if split[1] == 'w' else 1
+        castle_K = 1 if 'K' in split[2] else 0
+        castle_Q = 1 if 'Q' in split[2] else 0
+        castle_k = 1 if 'k' in split[2] else 0
+        castle_q = 1 if 'q' in split[2] else 0
+        en_passant = self.fen_to_square_number(
+            split[3]) if split[3] != '-' else 0
+        half_move = int(split[4])
+        full_move = int(split[5]) if len(split) >= 5 else 0
+
+        board_data = [color, castle_K, castle_Q, castle_k,
+                      castle_q, en_passant, half_move, full_move]
+
+        return boards, board_data
 
     # LINEAR MOVES
 
@@ -266,10 +296,11 @@ class BinaryBoard:
         return attack_board & self.ALL_DEFINED
 
     """
-    Output: 8 x 8 x 14 tensor (last 2 are attack boards for white and black, resp.)
+    Output: 14x8x8 (last 2 are attack boards for white and black, resp.)
     """
 
     def generate_board_matrix(self) -> list[list[list[int]]]:
+
         boards = [self.piece_boards['R'],
                   self.piece_boards['N'],
                   self.piece_boards['B'],
@@ -286,8 +317,9 @@ class BinaryBoard:
                   self.generate_attack_board(1)  # black attack board
                   ]
 
-        matrix = []
+        boards += self.board_data
 
+        matrix = []
         for board in boards:
             matrix.append(bitboard_to_matrix(board))
 
@@ -334,7 +366,7 @@ class BinaryBoard:
         print(print_str)
 
 
-TEST_FENS = ["rnbqkbnr/pppppppp/8/1p7/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0",
+TEST_FENS = ["rnbqkbnr/pppppppp/8/1p7/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0",
              "1rq2bnr/p3p1pp/1p2bk2/2pP1p2/5PnN/3P2PP/PP2P3/1RBQKBNR w - - 7 15",
              "r1bq1kn1/pppp4/2n4r/3Pp1pP/2B2p2/b2QP2P/PPP1KP2/RNB3NR w - - 3 10",
              "r1bqk1nr/p1pp1p1p/1pn1p3/6p1/8/1PP1BPP1/P1Q1P2P/RN2KBNR w KQkq - 0 8"]
