@@ -9,6 +9,7 @@ from bitboard import Bitboard
 from eval import ChessEvaluator, ModelTypes
 from cnn import ChessCNN
 from archive.mcts import MCTS
+from concurrent.futures import ThreadPoolExecutor
 
 
 class DecisionTypes(Enum):
@@ -25,7 +26,7 @@ class ChessEngine:
                  fen,
                  evaluator,
                  dec_type=DecisionTypes.MINIMAX,
-                 depth=3):
+                 depth=2):
         self.board = chess.Board(fen)
         self.dec_type = dec_type  # 'mini' or 'nega'
         self._evaluator = evaluator
@@ -82,25 +83,29 @@ class ChessEngine:
         beta = float('inf')
 
         legal_moves = list(self.board.legal_moves)
-        # Determine the current player's color
         color = 1 if self.board.turn == chess.WHITE else -1
 
-        for move in legal_moves:
-            self.board.push(move)
+        def evaluate_move(move):
+            board_copy = self.board.copy()  # Create a copy of the board
+            board_copy.push(move)
             if self.dec_type == DecisionTypes.MINIMAX:
-                board_value = self._decide_minimax(
-                    self.board, max_depth - 1, alpha, beta, False, color, move_num)
+                board_value = self._decide_minimax(board_copy, max_depth - 1, alpha, beta, False, color, move_num)
             elif self.dec_type == DecisionTypes.NEGAMAX:
-                board_value = self._decide_negamax(
-                    self.board, max_depth - 1, alpha, beta, color, move_num)
+                board_value = self._decide_negamax(board_copy, max_depth - 1, alpha, beta, color, move_num)
             else:
-                board_value = self._decide_negamax(
-                    self.board, max_depth - 1, alpha, beta, color, move_num)
-            self.board.pop()
+                board_value = self._decide_negamax(board_copy, max_depth - 1, alpha, beta, color, move_num)
+            return board_value, move
 
+        with ThreadPoolExecutor() as executor:
+            results = list(executor.map(evaluate_move, legal_moves))
+
+        for board_value, move in results:
             if board_value > best_value:
                 best_value = board_value
                 best_move = move
+
+
+            
 
         return best_move
 
@@ -116,53 +121,50 @@ class ChessEngine:
 
     def _decide_minimax(self, board, depth, alpha, beta, is_maximizing, color, move_num):
         if depth == 0 or board.is_game_over():
-            return color * self.eval_model(board, move_num)
+            return self.eval_model(board, move_num)
 
         legal_moves = list(board.legal_moves)
 
         if is_maximizing:
-            max_eval = float('-inf')
+            value = float('-inf')
             for move in legal_moves:
                 board.push(move)
-                eval = self._decide_minimax(board, depth - 1, alpha,
-                                            beta, False, -color, move_num+1)
+                value= max(value, self._decide_minimax(board, depth - 1, alpha,
+                                            beta, False, -color, move_num+1))
                 board.pop()
-                max_eval = max(max_eval, eval)
-                alpha = max(alpha, eval)
+                alpha = max(alpha, value)
                 if beta <= alpha:
                     break
-            return max_eval
+            return value
         else:
-            min_eval = float('inf')
+            value = float('inf')
             for move in legal_moves:
                 board.push(move)
-                eval = self._decide_minimax(
-                    board, depth - 1, alpha, beta, True, -color, move_num+1)
+                value = min(value, self._decide_minimax(
+                    board, depth - 1, alpha, beta, True, -color, move_num+1))
                 board.pop()
-                min_eval = min(min_eval, eval)
-                beta = min(beta, eval)
+                beta = min(beta, value)
                 if beta <= alpha:
                     break
-            return min_eval
+            return value
 
     def _decide_negamax(self, board, depth, alpha, beta, color, move_num):
         if depth == 0 or board.is_game_over():
-            return color * self.eval_model(board, move_num)
+            return self.eval_model(board, move_num)
 
-        max_eval = float('-inf')
+        value = float('-inf')
         legal_moves = list(board.legal_moves)
 
         for move in legal_moves:
             board.push(move)
-            eval = -self._decide_negamax(board,
+            value = -self._decide_negamax(board,
                                          depth - 1, -beta, -alpha, -color, move_num+1)
             board.pop()
-            max_eval = max(max_eval, eval)
-            alpha = max(alpha, eval)
+            alpha = max(alpha, value)
             if alpha >= beta:
                 break
 
-        return max_eval
+        return value
 
     # UTILS
     def print_board_fancy(self, board=None):

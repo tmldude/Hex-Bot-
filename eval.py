@@ -36,6 +36,8 @@ class ChessEvaluator:
             self.model.eval()
         else:  # KERAS
             self.model = load_model(model_path)
+            self.device = '/GPU:0' if tf.config.list_physical_devices('GPU') else '/CPU:0'
+
 
         # STOCKFISH
 
@@ -71,19 +73,22 @@ class ChessEvaluator:
 
     def _cnn_keras_score(self, board):
         fen = board.fen()
-        matrix = self.fen_to_matrix_OMEnd(fen)
-
-        matrix = np.array(matrix)
-        if matrix.shape != (22, 8, 8):
-            raise ValueError(f"Unexpected matrix shape: {matrix.shape}")
     
-        # Add a batch dimension
-        matrix = np.expand_dims(matrix, axis=0)
 
-        output = self.model.predict(matrix, verbose=0)
+        with tf.device(self.device):
+            matrix = self.fen_to_matrix_OMEnd(fen)
 
+            matrix = np.array(matrix)
+            if matrix.shape != (22, 8, 8):
+                raise ValueError(f"Unexpected matrix shape: {matrix.shape}")
+        
+            # Add a batch dimension
+            matrix = np.expand_dims(matrix, axis=0)
+            output = self.model.predict(matrix, verbose=0)
 
-        # print(output[0][0])
+        # return output
+        # output = self.model.predict(matrix, verbose=0)
+
         return output[0][0]
 
     @staticmethod
