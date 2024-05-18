@@ -14,10 +14,10 @@ class ChessEvaluator:
     '''
 
     def __init__(self,
-                 model_type=MODEL_TYPES.get('keras'),
-                 model_path='chess_model_250k.h5',
-                 sf_level=10,
-                 sf_path="D:\ChessData\stockfish\stockfish-windows-x86-64-avx2.exe"):
+                 model_type=MODEL_TYPES.get('torch'),
+                 model_path='./data/chess_cnn_model_50k.pth',
+                 sf_level=7,
+                 sf_path="/usr/local/opt/stockfish"):
         self.model_type = model_type
         self.model_path = model_path
 
