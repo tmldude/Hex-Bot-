@@ -6,6 +6,8 @@ import torch
 import torch.nn as nn
 from bitboard import Bitboard
 from eval import ChessEvaluator, MODEL_TYPES
+from cnn import ChessCNN
+from mcts import MCTS
 
 MODEL_PATH = 'chess_model_250k.h5'
 SF_PATH = "D:\ChessData\stockfish\stockfish-windows-x86-64-avx2.exe"
@@ -310,8 +312,12 @@ class Engine:
             elif engine == 'nega':
                 board_value = self.negamax(
                     self.board, max_depth - 1, alpha, beta, color)
+            elif engine == 'mtcs':
+                mcts = MCTS(self.board, self.evaluate_board_CNN_torch)
+                mcts.run(4)
+                board_value = mcts.best_move()
+
             else:
-                print('fuck')
                 board_value = self.negamax(
                     self.board, max_depth - 1, alpha, beta, color)
             self.board.pop()
@@ -321,6 +327,8 @@ class Engine:
                 best_move = move
 
         return best_move
+    
+
 
     def print_board_fancy(self, board):
         unicode_pieces = {
@@ -365,7 +373,7 @@ class Engine:
                 initial_score = self.evaluate_board_CNN_torch(board)
 
                 # print(f"initial_score_CNN: {initial_score}")
-                move = self.get_best_move(4, 'nega')
+                move = self.get_best_move(4, 'mcts')
                 board.push(move)
 
             who_goes_first = 0 if who_goes_first else 1

@@ -72,21 +72,21 @@ def knight_moves(friendly_pieces=None, enemy_pieces=None, bitboard=(BLACK | KNIG
     return all_moves
 
 
-knight_moves()
-i = 0
-bit = 1
+# knight_moves()
+# i = 0
+# bit = 1
 
-while i < 10:
-    bit = 0 if bit else 1
-    print(bit)
-    i += 1
+# while i < 10:
+#     bit = 0 if bit else 1
+#     print(bit)
+#     i += 1
 
 
-tall = ['man', 'mike']
-small = ['teddy']
+# tall = ['man', 'mike']
+# small = ['teddy']
 
-tall += small
-print(tall)
+# tall += small
+# print(tall)
 
 
 # # string = ''
