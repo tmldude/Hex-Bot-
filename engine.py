@@ -7,6 +7,8 @@ import torch.nn as nn
 from bitboard import Bitboard
 from eval import ChessEvaluator, MODEL_TYPES
 
+MODEL_PATH = 'chess_model_250k.h5'
+SF_PATH = "D:\ChessData\stockfish\stockfish-windows-x86-64-avx2.exe"
 
 DECISIONS = {'minimax': 0,
              'negamax': 1}
@@ -16,11 +18,20 @@ class Engine:
 
     '''Takes in a board to find the next move and evaluate the next best position, using our AI'''
 
-    def __init__(self, board, decisions=DECISIONS.get('minimax'), model_path='chess_model_250k.h5', model_type=MODEL_TYPES.get('keras')):
+    def __init__(self,
+                 board,
+                 decisions=DECISIONS.get('minimax'),
+                 model_type=MODEL_TYPES.get('keras'),
+                 model_path=MODEL_PATH,
+                 sf_level=10,
+                 sf_path=SF_PATH):
         self.board = chess.Board(board)
         self.decisions = decisions  # 'mini' or 'nega'
 
-        self.eval = ChessEvaluator(model_path, model_type)
+        self.eval = ChessEvaluator(model_path=model_path,
+                                   model_type=model_type,
+                                   sf_level=sf_level,
+                                   sf_path=sf_path)
 
     def play_stock_fish(self):
         i = 0

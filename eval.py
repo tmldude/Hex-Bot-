@@ -13,10 +13,13 @@ class ChessEvaluator:
     Also, holds functions to convert our BOARD into FEN and back into our BOARD
     '''
 
-    STOCKFISH_PATH = "D:\ChessData\stockfish\stockfish-windows-x86-64-avx2.exe"
-
-    def __init__(self, model_path='chess_model_250k.h5', model_type=MODEL_TYPES.get('keras')):
+    def __init__(self,
+                 model_type=MODEL_TYPES.get('keras'),
+                 model_path='chess_model_250k.h5',
+                 sf_level=10,
+                 sf_path="D:\ChessData\stockfish\stockfish-windows-x86-64-avx2.exe"):
         self.model_type = model_type
+        self.model_path = model_path
 
         if self.model_type == MODEL_TYPES.get('torch'):
             self.model = ChessCNN()
@@ -25,6 +28,22 @@ class ChessEvaluator:
             self.model.eval()
         else:  # KERAS
             self.model = load_model(model_path)
+
+        # STOCKFISH
+
+        self.sf_level = sf_level
+        self.sf_path = sf_path
+
+        self.sf_engine = chess.engine.SimpleEngine.popen_uci(self.sf_path)
+        self.sf_engine.configure({"Skill Level": self.sf_level})
+
+    def stockfish(self, board, time_limit=0.01):
+        with self.sf_engine.popen_uci(self.sf_path) as sf:
+            score = sf.analyse(board, chess.engine.Limit(
+                time=time_limit)).score.relative.score()
+            move = sf.play(board, chess.engine.Limit(time=time_limit)).move
+
+        return score, move
 
     def model(self, board):
         if self.model_type == MODEL_TYPES.get('torch'):
@@ -48,14 +67,6 @@ class ChessEvaluator:
 
         # print(output[0][0])
         return output[0][0]
-
-    def stockfish(self, board, time_limit=0.01):
-        with chess.engine.SimpleEngine.popen_uci(ChessEvaluator.STOCKFISH_PATH) as sf:
-            score = sf.analyse(board, chess.engine.Limit(
-                time=time_limit)).score.relative.score()
-            move = sf.play(board, chess.engine.Limit(time=time_limit)).move
-
-        return score, move
 
     @staticmethod
     def count_pieces(board):
