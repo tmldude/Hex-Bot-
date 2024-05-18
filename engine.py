@@ -1,3 +1,4 @@
+from enum import Enum
 import random
 import chess
 import chess.engine
@@ -5,37 +6,36 @@ import numpy as np
 import torch
 import torch.nn as nn
 from bitboard import Bitboard
-from eval import ChessEvaluator, MODEL_TYPES
+from eval import ChessEvaluator, ModelTypes
 from cnn import ChessCNN
 from archive.mcts import MCTS
 
-MODEL_PATH = './models/chess_cnn_model_50k.pth'
-SF_PATH = "/usr/local/opt/stockfish"
 
-DECISIONS = {'minimax': 0,
-             'negamax': 1,
-             'mcts': 2}
+class DecisionTypes(Enum):
+    MINIMAX = 0
+    NEGAMAX = 1
+    MCTS = 2
 
 
-class Engine:
+class ChessEngine:
 
     '''Takes in a board to find the next move and evaluate the next best position, using our AI'''
 
     def __init__(self,
                  fen,
-                 decisions=DECISIONS.get('minimax'),
-                 model_type=MODEL_TYPES.get('torch'),
-                 model_path=MODEL_PATH,
-                 sf_level=7,
-                 sf_path=SF_PATH,
+                 evaluator,
+                 dec_type=DecisionTypes.MINIMAX,
                  depth=3):
         self.board = chess.Board(fen)
-        self.decisions = decisions  # 'mini' or 'nega'
-        self.eval = ChessEvaluator(model_path=model_path,
-                                   model_type=model_type,
-                                   sf_level=sf_level,
-                                   sf_path=sf_path)
+        self.dec_type = dec_type  # 'mini' or 'nega'
+        self._evaluator = evaluator
         self.depth = depth
+
+    def eval_stockfish(self, board):
+        return self._evaluator.stockfish(board)
+
+    def eval_model(self, board, move_num):
+        return self._evaluator.model_score(board)
 
     def play_stockfish(self):
         i = 0
@@ -51,13 +51,13 @@ class Engine:
             # self.print_board_fancy(board)
 
             if stockfish_first:
-                score, move = self.eval.stockfish(board)
+                score, move = self.eval_stockfish(board)
                 # print(f"initial_score_stock: {initial_score}")
                 board.push(move)
             else:
-                score = self.eval.model_score(board)
+                score = self.eval_model(board, i)
                 # print(f"initial_score_CNN: {initial_score}")
-                move = self.get_best_move(self.depth)
+                move = self.get_best_move(self.depth, i)
                 board.push(move)
 
             stockfish_first = 0 if stockfish_first else 1
@@ -75,7 +75,7 @@ class Engine:
 
     # GET NEXT MOVE
 
-    def get_best_move(self, max_depth):
+    def get_best_move(self, max_depth, move_num):
         best_move = None
         best_value = float('-inf')
         alpha = float('-inf')
@@ -87,15 +87,15 @@ class Engine:
 
         for move in legal_moves:
             self.board.push(move)
-            if self.decisions == DECISIONS.get('minimax'):
+            if self.dec_type == DecisionTypes.MINIMAX:
                 board_value = self._decide_minimax(
-                    self.board, max_depth - 1, alpha, beta, False, color)
-            elif self.decisions == DECISIONS.get('negamax'):
+                    self.board, max_depth - 1, alpha, beta, False, color, move_num)
+            elif self.dec_type == DecisionTypes.NEGAMAX:
                 board_value = self._decide_negamax(
-                    self.board, max_depth - 1, alpha, beta, color)
+                    self.board, max_depth - 1, alpha, beta, color, move_num)
             else:
                 board_value = self._decide_negamax(
-                    self.board, max_depth - 1, alpha, beta, color)
+                    self.board, max_depth - 1, alpha, beta, color, move_num)
             self.board.pop()
 
             if board_value > best_value:
@@ -114,9 +114,9 @@ class Engine:
 
     # DECISIONS
 
-    def _decide_minimax(self, board, depth, alpha, beta, is_maximizing, color):
+    def _decide_minimax(self, board, depth, alpha, beta, is_maximizing, color, move_num):
         if depth == 0 or board.is_game_over():
-            return color * self.eval.model_score(board)
+            return color * self.eval_model(board, move_num)
 
         legal_moves = list(board.legal_moves)
 
@@ -125,7 +125,7 @@ class Engine:
             for move in legal_moves:
                 board.push(move)
                 eval = self._decide_minimax(board, depth - 1, alpha,
-                                            beta, False, -color)
+                                            beta, False, -color, move_num+1)
                 board.pop()
                 max_eval = max(max_eval, eval)
                 alpha = max(alpha, eval)
@@ -137,7 +137,7 @@ class Engine:
             for move in legal_moves:
                 board.push(move)
                 eval = self._decide_minimax(
-                    board, depth - 1, alpha, beta, True, -color)
+                    board, depth - 1, alpha, beta, True, -color, move_num+1)
                 board.pop()
                 min_eval = min(min_eval, eval)
                 beta = min(beta, eval)
@@ -145,9 +145,9 @@ class Engine:
                     break
             return min_eval
 
-    def _decide_negamax(self, board, depth, alpha, beta, color):
+    def _decide_negamax(self, board, depth, alpha, beta, color, move_num):
         if depth == 0 or board.is_game_over():
-            return color * self.eval.model_score(board)
+            return color * self.eval_model(board, move_num)
 
         max_eval = float('-inf')
         legal_moves = list(board.legal_moves)
@@ -155,7 +155,7 @@ class Engine:
         for move in legal_moves:
             board.push(move)
             eval = -self._decide_negamax(board,
-                                         depth - 1, -beta, -alpha, -color)
+                                         depth - 1, -beta, -alpha, -color, move_num+1)
             board.pop()
             max_eval = max(max_eval, eval)
             alpha = max(alpha, eval)

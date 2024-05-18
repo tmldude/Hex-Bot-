@@ -1,3 +1,4 @@
+from enum import Enum
 import chess
 import torch
 from cnn import ChessCNN
@@ -8,8 +9,9 @@ import tensorflow as tf
 from tensorflow.keras.models import load_model
 
 
-MODEL_TYPES = {'torch': 0,
-               'keras': 1}
+class ModelTypes(Enum):
+    TORCH = 0
+    KERAS = 1
 
 
 class ChessEvaluator:
@@ -26,9 +28,10 @@ class ChessEvaluator:
         self.model_type = model_type
         self.model_path = model_path
 
-        if self.model_type == MODEL_TYPES.get('torch'):
+        if self.model_type == ModelTypes.TORCH:
             self.model = ChessCNN()
-            state_dict = torch.load(model_path, map_location=torch.device('cpu'))
+            state_dict = torch.load(
+                model_path, map_location=torch.device('cpu'))
             self.model.load_state_dict(state_dict)
             self.model.eval()
         else:  # KERAS
@@ -52,7 +55,7 @@ class ChessEvaluator:
         return score, move
 
     def model_score(self, board):
-        if self.model_type == MODEL_TYPES.get('torch'):
+        if self.model_type == ModelTypes.TORCH:
             return self._cnn_torch_score(board)
         else:
             return self._cnn_keras_score(board)
@@ -89,7 +92,7 @@ class ChessEvaluator:
             chess.KING: 0
         }
         return values[piece.piece_type] if piece.color == chess.WHITE else -values[piece.piece_type]
-    
+
     @staticmethod
     def fen_to_tensor(fen):
         piece_list = ['P', 'N', 'B', 'R', 'Q',
@@ -122,7 +125,6 @@ class ChessEvaluator:
                 row, col = divmod(square, 8)
                 matrix[row, col, piece_map[piece.symbol()]] = 1
         return np.expand_dims(matrix, axis=0)
-
 
     @staticmethod
     def fen_to_matrix_OMEnd(fen):
