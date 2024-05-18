@@ -99,9 +99,9 @@ def process_moves(moves):
         else:
             endgame.append((fen, evaluation))
 
-        i = 0
+        i += 1
 
-    return opening, middlegame, endgame
+    return [opening, middlegame, endgame]
 
 def parse_and_evaluate_pgn(pgn_path, max_games=10000):
     with open(pgn_path, 'r') as pgn_file:
@@ -117,26 +117,44 @@ def parse_and_evaluate_pgn(pgn_path, max_games=10000):
             data.append(moves)
             games_processed += 1
 
-            if games_processed% 1000 == 0:
+            if games_processed % 1000 == 0:
                 print(f"Collected {games_processed} games")
     
-    
+    print('pooling')
     with Pool(cpu_count(), initializer=init_engine) as pool:
-        opening, middlegame, endgame  = pool.map(process_moves, data)
-
-    open_evaluations = [item for sublist in opening for item in sublist]
-    middle_evaluations = [item for sublist in middlegame for item in sublist]
-    end_evaluations = [item for sublist in endgame for item in sublist]
-
-    print(len(open_evaluations), len(middle_evaluations), len(end_evaluations))
+        results  = pool.map(process_moves, data)
     
-    with open('chess_dataset_open.json', 'w') as f:
+    print('separating into different states')
+
+    open_evaluations = []
+    middle_evaluations = []
+    end_evaluations = []
+    i = 0
+    for opening, mid, end in results:
+        # print(opening)
+        open_evaluations += opening
+        # print("======================================")
+        # print(mid)
+        middle_evaluations += mid
+        # print("======================================")
+        # print(end)
+        end_evaluations += end
+        # print(len(open_evaluations), len(middle_evaluations), len(end_evaluations), "======================================")
+
+        if i % 1000 == 0:
+            print(f'{i}: {len(open_evaluations)}, {len(middle_evaluations)}, {len(end_evaluations)}')
+        i += 1
+
+
+    print('generating files')
+
+    with open('chess_dataset_open_100k.json', 'w') as f:
         json.dump(open_evaluations, f)
 
-    with open('chess_dataset_middle.json', 'w') as f:
+    with open('chess_dataset_middle_100k.json', 'w') as f:
         json.dump(middle_evaluations, f)
     
-    with open('chess_dataset_end.json', 'w') as f:
+    with open('chess_dataset_end_100k.json', 'w') as f:
         json.dump(end_evaluations, f)
 
 
@@ -147,4 +165,4 @@ if __name__ == "__main__":
     pgn_path = "D:\ChessData\lichess_db_standard_rated_2024-02.pgn"
     # output_path = r"C:\Users\tmlaz\Desktop\chesspy\chess_from_pgn_250000.json"
 
-    parse_and_evaluate_pgn(pgn_path, max_games=5)
+    parse_and_evaluate_pgn(pgn_path, max_games=100000)

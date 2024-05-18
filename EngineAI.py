@@ -80,7 +80,7 @@ class EngineAI:
     def evaluate_board_CNN(self, board):
         fen = board.fen()
         matrix = self.fen_to_matrix(fen)
-        output = self.model.predict(matrix,verbose = 0)
+        output = self.model.predict(matrix, verbose = 0)
     
         # print(output[0][0])
         return output[0][0]

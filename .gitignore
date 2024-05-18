@@ -1,3 +1,10 @@
 chess_from_pgn_50000.json
 chess_from_pgn_250000.json
 lichess_elite_2020-12.pgn
+chess_dataset_end.json
+chess_dataset_open.json
+chess_dataset_middle.json
+chess_dataset_end_10k.json
+chess_dataset_open_10k.json
+chess_dataset_middle_10k.json
+100k
