@@ -9,7 +9,6 @@ from bitboard import Bitboard
 from eval import ChessEvaluator, ModelTypes
 from cnn import ChessCNN
 from archive.mcts import MCTS
-from concurrent.futures import ThreadPoolExecutor
 
 
 class DecisionTypes(Enum):
@@ -44,7 +43,8 @@ class ChessEngine:
 
         board = self.board
         stockfish_first = random.randint(0, 1)
-        print('stockfish White - Conv Net 50k Black' if stockfish_first else 'Conv Net 50k White - stockfish Black')
+        # print('OMEnd White - OMEnd Black' if stockfish_first else 'OMEnd White - OMEnd Black')
+        print('stockfish White - OMEnd Black' if stockfish_first else 'OMEnd White - stockfish Black')
 
         centipawn_losses = []
 
@@ -85,27 +85,20 @@ class ChessEngine:
         legal_moves = list(self.board.legal_moves)
         color = 1 if self.board.turn == chess.WHITE else -1
 
-        def evaluate_move(move):
+        for move in legal_moves:
             board_copy = self.board.copy()  # Create a copy of the board
             board_copy.push(move)
+            
             if self.dec_type == DecisionTypes.MINIMAX:
                 board_value = self._decide_minimax(board_copy, max_depth - 1, alpha, beta, False, color, move_num)
             elif self.dec_type == DecisionTypes.NEGAMAX:
                 board_value = self._decide_negamax(board_copy, max_depth - 1, alpha, beta, color, move_num)
             else:
                 board_value = self._decide_negamax(board_copy, max_depth - 1, alpha, beta, color, move_num)
-            return board_value, move
 
-        with ThreadPoolExecutor() as executor:
-            results = list(executor.map(evaluate_move, legal_moves))
-
-        for board_value, move in results:
             if board_value > best_value:
                 best_value = board_value
                 best_move = move
-
-
-            
 
         return best_move
 
