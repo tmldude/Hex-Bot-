@@ -1,8 +1,4 @@
-from utils import pprint_binboard, bitboard_to_matrix
-
-
-class BinaryBoard:
-
+class Bitboard:
     # Constants for colors
     WHITE = 0
     BLACK = 1
@@ -23,42 +19,67 @@ class BinaryBoard:
     NOT_RANK_8 = ~0xff00000000000000
 
     def __init__(self, fen: str) -> None:
-        self.piece_boards, self.board_data = self.fen_to_binary_boards(fen)
+        self.piece_boards, self.board_data = self.fen_to_bitboards(fen)
 
         self.combined_board = 0
         for bitboard in self.piece_boards.values():
             self.combined_board |= bitboard
 
+    # MAIN BOARD FUNCTIONS
+
+    def generate_attack_board(self, color_to_look_for) -> int:
+        attack_board = 0x0
+
+        if color_to_look_for == self.WHITE:
+            attack_board |= self.rook_moves(self.piece_boards['R'])
+            attack_board |= self.knight_moves(self.piece_boards['N'])
+            attack_board |= self.bishop_moves(self.piece_boards['B'])
+            attack_board |= self.queen_moves(self.piece_boards['Q'])
+            attack_board |= self.king_moves(self.piece_boards['K'])
+            attack_board |= self.pawn_attacks_white(self.piece_boards['P'])
+        else:
+            attack_board |= self.rook_moves(self.piece_boards['r'])
+            attack_board |= self.knight_moves(self.piece_boards['n'])
+            attack_board |= self.bishop_moves(self.piece_boards['b'])
+            attack_board |= self.queen_moves(self.piece_boards['q'])
+            attack_board |= self.king_moves(self.piece_boards['k'])
+            attack_board |= self.pawn_attacks_black(self.piece_boards['p'])
+
+        return attack_board & self.ALL_DEFINED
+
     """
-    Given a board and a square, returns the hex number at the square
-    other returns the square on a board not self
+    Output: 14x8x8 (last 2 are attack boards for white and black, resp.)
     """
 
-    def binary_to_piece(self, square, other=None) -> int:
-        if other:
-            return other >> (square & 0x1)
-        return self.combined_board >> (square & 0x1)
+    def generate_board_matrix(self) -> list[list[list[int]]]:
+
+        boards = [self.piece_boards['R'],
+                  self.piece_boards['N'],
+                  self.piece_boards['B'],
+                  self.piece_boards['Q'],
+                  self.piece_boards['K'],
+                  self.piece_boards['P'],
+                  self.piece_boards['r'],
+                  self.piece_boards['n'],
+                  self.piece_boards['b'],
+                  self.piece_boards['q'],
+                  self.piece_boards['k'],
+                  self.piece_boards['p'],
+                  self.generate_attack_board(0),  # white attack board
+                  self.generate_attack_board(1)  # black attack board
+                  ]
+
+        boards += self.board_data
+
+        matrix = []
+        for board in boards:
+            matrix.append(Bitboard.bitboard_to_matrix(board))
+
+        return matrix
 
     # FEN
 
-    def fen_to_square_number(self, fen_square):
-        if fen_square == "-":
-            return -1
-
-        files = "abcdefgh"
-        ranks = "87654321"
-
-        file = fen_square[0]
-        rank = fen_square[1]
-
-        file_index = files.index(file)
-        rank_index = ranks.index(rank)
-
-        square_number = rank_index * 8 + file_index
-
-        return square_number
-
-    def fen_to_binary_boards(self, fen: str) -> dict[str, int]:
+    def fen_to_bitboards(self, fen: str) -> dict[str, int]:
         pieces = 'PNBRQKpnbrqk'
         boards = {piece: 0 for piece in pieces}
 
@@ -92,6 +113,23 @@ class BinaryBoard:
 
         return boards, board_data
 
+    def fen_to_square_number(self, fen_square):
+        if fen_square == "-":
+            return -1
+
+        files = "abcdefgh"
+        ranks = "87654321"
+
+        file = fen_square[0]
+        rank = fen_square[1]
+
+        file_index = files.index(file)
+        rank_index = ranks.index(rank)
+
+        square_number = rank_index * 8 + file_index
+
+        return square_number
+
     # LINEAR MOVES
 
     @staticmethod
@@ -104,63 +142,63 @@ class BinaryBoard:
 
     @staticmethod
     def eastOne(b) -> int:
-        return (b << 1) & BinaryBoard.NOT_A_FILE
+        return (b << 1) & Bitboard.NOT_A_FILE
 
     # DIAG MOVES
 
     @staticmethod
     def noEaOne(b) -> int:
-        return (b << 9) & BinaryBoard.NOT_A_FILE
+        return (b << 9) & Bitboard.NOT_A_FILE
 
     @staticmethod
     def soEaOne(b) -> int:
-        return (b >> 7) & BinaryBoard.NOT_A_FILE
+        return (b >> 7) & Bitboard.NOT_A_FILE
 
     @staticmethod
     def westOne(b) -> int:
-        return (b >> 1) & BinaryBoard.NOT_H_FILE
+        return (b >> 1) & Bitboard.NOT_H_FILE
 
     @staticmethod
     def soWeOne(b) -> int:
-        return (b >> 9) & BinaryBoard.NOT_H_FILE
+        return (b >> 9) & Bitboard.NOT_H_FILE
 
     @staticmethod
     def noWeOne(b) -> int:
-        return (b << 7) & BinaryBoard.NOT_H_FILE
+        return (b << 7) & Bitboard.NOT_H_FILE
 
     @staticmethod
     def noNoEa(bitboard) -> int:
-        return (bitboard << 17) & BinaryBoard.NOT_A_FILE
+        return (bitboard << 17) & Bitboard.NOT_A_FILE
 
     # KNIGHT MOVES
 
     @staticmethod
     def noEaEa(bitboard) -> int:
-        return (bitboard << 10) & BinaryBoard.NOT_AB_FILE
+        return (bitboard << 10) & Bitboard.NOT_AB_FILE
 
     @staticmethod
     def soEaEa(bitboard) -> int:
-        return (bitboard >> 6) & BinaryBoard.NOT_AB_FILE
+        return (bitboard >> 6) & Bitboard.NOT_AB_FILE
 
     @staticmethod
     def soSoEa(bitboard) -> int:
-        return (bitboard >> 15) & BinaryBoard.NOT_A_FILE
+        return (bitboard >> 15) & Bitboard.NOT_A_FILE
 
     @staticmethod
     def noNoWe(bitboard) -> int:
-        return (bitboard << 15) & BinaryBoard.NOT_H_FILE
+        return (bitboard << 15) & Bitboard.NOT_H_FILE
 
     @staticmethod
     def noWeWe(bitboard) -> int:
-        return (bitboard << 6) & BinaryBoard.NOT_GH_FILE
+        return (bitboard << 6) & Bitboard.NOT_GH_FILE
 
     @staticmethod
     def soWeWe(bitboard) -> int:
-        return (bitboard >> 10) & BinaryBoard.NOT_GH_FILE
+        return (bitboard >> 10) & Bitboard.NOT_GH_FILE
 
     @staticmethod
     def soSoWe(bitboard) -> int:
-        return (bitboard >> 17) & BinaryBoard.NOT_H_FILE
+        return (bitboard >> 17) & Bitboard.NOT_H_FILE
 
     # SLIDE MOVES
 
@@ -190,28 +228,28 @@ class BinaryBoard:
         return next_boards
 
     def getNoSlide(self, bitboard) -> int:
-        return self._get_slide(bitboard, BinaryBoard.nortOne, BinaryBoard.NOT_RANK_8, BinaryBoard.ALL_DEFINED)
+        return self._get_slide(bitboard, Bitboard.nortOne, Bitboard.NOT_RANK_8, Bitboard.ALL_DEFINED)
 
     def getSoSlide(self, bitboard) -> int:
-        return self._get_slide(bitboard, BinaryBoard.soutOne, BinaryBoard.NOT_RANK_1, BinaryBoard.ALL_DEFINED)
+        return self._get_slide(bitboard, Bitboard.soutOne, Bitboard.NOT_RANK_1, Bitboard.ALL_DEFINED)
 
     def getEaSlide(self, bitboard) -> int:
-        return self._get_slide(bitboard, BinaryBoard.eastOne, BinaryBoard.NOT_H_FILE, BinaryBoard.ALL_DEFINED)
+        return self._get_slide(bitboard, Bitboard.eastOne, Bitboard.NOT_H_FILE, Bitboard.ALL_DEFINED)
 
     def getWeSlide(self, bitboard) -> int:
-        return self._get_slide(bitboard, BinaryBoard.westOne, BinaryBoard.NOT_A_FILE, BinaryBoard.ALL_DEFINED)
+        return self._get_slide(bitboard, Bitboard.westOne, Bitboard.NOT_A_FILE, Bitboard.ALL_DEFINED)
 
     def getNoEaSlide(self, bitboard) -> int:
-        return self._get_slide(bitboard, BinaryBoard.noEaOne, BinaryBoard.NOT_RANK_8, BinaryBoard.NOT_H_FILE)
+        return self._get_slide(bitboard, Bitboard.noEaOne, Bitboard.NOT_RANK_8, Bitboard.NOT_H_FILE)
 
     def getNoWeSlide(self, bitboard) -> int:
-        return self._get_slide(bitboard, BinaryBoard.noWeOne, BinaryBoard.NOT_RANK_8, BinaryBoard.NOT_A_FILE)
+        return self._get_slide(bitboard, Bitboard.noWeOne, Bitboard.NOT_RANK_8, Bitboard.NOT_A_FILE)
 
     def getSoEaSlide(self, bitboard) -> int:
-        return self._get_slide(bitboard, BinaryBoard.soEaOne, BinaryBoard.NOT_RANK_1, BinaryBoard.NOT_H_FILE)
+        return self._get_slide(bitboard, Bitboard.soEaOne, Bitboard.NOT_RANK_1, Bitboard.NOT_H_FILE)
 
     def getSoWeSlide(self, bitboard) -> int:
-        return self._get_slide(bitboard, BinaryBoard.soWeOne, BinaryBoard.NOT_RANK_1, BinaryBoard.NOT_A_FILE)
+        return self._get_slide(bitboard, Bitboard.soWeOne, Bitboard.NOT_RANK_1, Bitboard.NOT_A_FILE)
 
     # PIECE MOVES
 
@@ -273,61 +311,31 @@ class BinaryBoard:
 
         return attacks
 
-    # MAIN FUNCTIONS
-
-    def generate_attack_board(self, color_to_look_for) -> int:
-        attack_board = 0x0
-
-        if color_to_look_for == self.WHITE:
-            attack_board |= self.rook_moves(self.piece_boards['R'])
-            attack_board |= self.knight_moves(self.piece_boards['N'])
-            attack_board |= self.bishop_moves(self.piece_boards['B'])
-            attack_board |= self.queen_moves(self.piece_boards['Q'])
-            attack_board |= self.king_moves(self.piece_boards['K'])
-            attack_board |= self.pawn_attacks_white(self.piece_boards['P'])
-        else:
-            attack_board |= self.rook_moves(self.piece_boards['r'])
-            attack_board |= self.knight_moves(self.piece_boards['n'])
-            attack_board |= self.bishop_moves(self.piece_boards['b'])
-            attack_board |= self.queen_moves(self.piece_boards['q'])
-            attack_board |= self.king_moves(self.piece_boards['k'])
-            attack_board |= self.pawn_attacks_black(self.piece_boards['p'])
-
-        return attack_board & self.ALL_DEFINED
-
-    """
-    Output: 14x8x8 (last 2 are attack boards for white and black, resp.)
-    """
-
-    def generate_board_matrix(self) -> list[list[list[int]]]:
-
-        boards = [self.piece_boards['R'],
-                  self.piece_boards['N'],
-                  self.piece_boards['B'],
-                  self.piece_boards['Q'],
-                  self.piece_boards['K'],
-                  self.piece_boards['P'],
-                  self.piece_boards['r'],
-                  self.piece_boards['n'],
-                  self.piece_boards['b'],
-                  self.piece_boards['q'],
-                  self.piece_boards['k'],
-                  self.piece_boards['p'],
-                  self.generate_attack_board(0),  # white attack board
-                  self.generate_attack_board(1)  # black attack board
-                  ]
-
-        boards += self.board_data
-
-        matrix = []
-        for board in boards:
-            matrix.append(bitboard_to_matrix(board))
-
-        print(matrix)
-
-        return matrix
-
     # UTILS
+
+    """
+    Given a board and a square, returns the hex number at the square
+    other returns the square on a board not self
+    """
+
+    def binary_to_piece(self, square, other=None) -> int:
+        if other:
+            return other >> (square & 0x1)
+        return self.combined_board >> (square & 0x1)
+
+    @staticmethod
+    def bitboard_to_matrix(bitboard: int) -> list[list[int]]:
+        matrix = []
+        for row in range(8):
+            current_row = []
+            for col in range(8):
+                index = (7 - row) * 8 + col
+                if bitboard & (1 << index):
+                    current_row.append(1)
+                else:
+                    current_row.append(0)
+            matrix.append(current_row)
+        return matrix
 
     '''
     Prints board state: for starting board
@@ -365,22 +373,36 @@ class BinaryBoard:
         print("\n hex Board Values:")
         print(print_str)
 
+        '''
+    for testing, prints,
+    In starting positon 0 being the white rook, 63 being the black rook
+            56 57 58 59 60 61 62 63
+            48 49 50 51 52 53 54 55
+            40 41 42 43 44 45 46 47
+            32 33 34 35 36 37 38 39
+            24 25 26 27 28 29 30 31
+            16 17 18 19 20 21 22 23
+                8  9 10 11 12 13 14 15
+                0  1  2  3  4  5  6  7
+    '''
 
-TEST_FENS = ["rnbqkbnr/pppppppp/8/1p7/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 0",
-             "1rq2bnr/p3p1pp/1p2bk2/2pP1p2/5PnN/3P2PP/PP2P3/1RBQKBNR w - - 7 15",
-             "r1bq1kn1/pppp4/2n4r/3Pp1pP/2B2p2/b2QP2P/PPP1KP2/RNB3NR w - - 3 10",
-             "r1bqk1nr/p1pp1p1p/1pn1p3/6p1/8/1PP1BPP1/P1Q1P2P/RN2KBNR w KQkq - 0 8"]
+    def print_numboard():
+        string = ''
+        for i in range(7, -1, -1):  # Start from 7 and decrement to 0
+            for j in range(8):
+                string = string + str(i * 8 + j) + " "
+            string = string + '\n'  # Add newline after each row
 
+        print(string)
 
-def main():
-    fen_string = TEST_FENS[0]
-    board = BinaryBoard(fen_string)
-    pprint_binboard(board.combined_board)
-    pprint_binboard(board.generate_attack_board(0))
-    pprint_binboard(board.generate_attack_board(1))
-    print(bin(board.generate_attack_board(1)))
-    board.generate_board_matrix()
-
-
-if __name__ == "__main__":
-    main()
+    def pprint_board(board):
+        print_str = ''
+        for i in range(7, -1, -1):
+            for j in range(8):
+                bit_position = i * 8 + j
+                if board & (1 << bit_position):
+                    print_str += '1 '  # Occupied
+                else:
+                    print_str += '0 '  # Empty
+            print_str += '\n'
+        print(print_str)

@@ -5,11 +5,11 @@
 import chess
 import chess.engine
 
-from board_hexrep import HexBoard
+from archive.board_hex import HexBoard
 import random
 
 
-class HexBoardAI:
+class HexBoardEngine:
     '''Takes in a board to find the next move and evaluate the next best position, using our AI'''
 
     def __init__(self, board):
