@@ -1,7 +1,7 @@
 from utils import add_rightmost_hex_digit
 
 
-class Board:
+class HexBoard:
     '''
     Board class for representing a chess board
 
@@ -97,35 +97,35 @@ class Board:
 
     @staticmethod
     def noNoEa(x) -> int:
-        return (x << (17 * 4)) & Board.NOT_A_FILE
+        return (x << (17 * 4)) & HexBoard.NOT_A_FILE
 
     @staticmethod
     def noEaEa(x) -> int:
-        return (x << (10 * 4)) & Board.NOT_AB_FILE
+        return (x << (10 * 4)) & HexBoard.NOT_AB_FILE
 
     @staticmethod
     def soEaEa(x) -> int:
-        return (x >> (6 * 4)) & Board.NOT_AB_FILE
+        return (x >> (6 * 4)) & HexBoard.NOT_AB_FILE
 
     @staticmethod
     def soSoEa(x) -> int:
-        return (x >> (15 * 4)) & Board.NOT_A_FILE
+        return (x >> (15 * 4)) & HexBoard.NOT_A_FILE
 
     @staticmethod
     def noNoWe(x) -> int:
-        return (x << (15 * 4)) & Board.NOT_H_FILE
+        return (x << (15 * 4)) & HexBoard.NOT_H_FILE
 
     @staticmethod
     def noWeWe(x) -> int:
-        return (x << (6 * 4)) & Board.NOT_GH_FILE
+        return (x << (6 * 4)) & HexBoard.NOT_GH_FILE
 
     @staticmethod
     def soWeWe(x) -> int:
-        return (x >> (10 * 4)) & Board.NOT_GH_FILE
+        return (x >> (10 * 4)) & HexBoard.NOT_GH_FILE
 
     @staticmethod
     def soSoWe(x) -> int:
-        return (x >> (17 * 4)) & Board.NOT_H_FILE
+        return (x >> (17 * 4)) & HexBoard.NOT_H_FILE
 
     @staticmethod
     def nortOne(b) -> int:
@@ -137,27 +137,27 @@ class Board:
 
     @staticmethod
     def eastOne(b) -> int:
-        return (b << (1*4)) & Board.NOT_A_FILE
+        return (b << (1*4)) & HexBoard.NOT_A_FILE
 
     @staticmethod
     def noEaOne(b) -> int:
-        return (b << (9*4)) & Board.NOT_A_FILE
+        return (b << (9*4)) & HexBoard.NOT_A_FILE
 
     @staticmethod
     def soEaOne(b) -> int:
-        return (b >> (7*4)) & Board.NOT_A_FILE
+        return (b >> (7*4)) & HexBoard.NOT_A_FILE
 
     @staticmethod
     def westOne(b) -> int:
-        return (b >> (1*4)) & Board.NOT_H_FILE
+        return (b >> (1*4)) & HexBoard.NOT_H_FILE
 
     @staticmethod
     def soWeOne(b) -> int:
-        return (b >> (9*4)) & Board.NOT_H_FILE
+        return (b >> (9*4)) & HexBoard.NOT_H_FILE
 
     @staticmethod
     def noWeOne(b) -> int:
-        return (b << (7*4)) & Board.NOT_H_FILE
+        return (b << (7*4)) & HexBoard.NOT_H_FILE
 
     def __init__(self, board=0, color_to_move=0, last_end_square=0x0, can_en_passant=0x0, en_passant_square_fen=None, castle_states=None, fpgn=None) -> None:
         self.board = board
@@ -166,13 +166,13 @@ class Board:
         self.color_to_move = color_to_move
         self.last_end_square = last_end_square
 
-        self.castle_states = castle_states if castle_states else {'white_king_moved': False, 
-                                'black_king_moved': False, 
-                                'QS_rook_b_moved': False, 
-                                'QS_rook_w_moved': False, 
-                                'KS_rook_b_moved': False, 
-                                'KS_rook_w_moved': False, }
-            
+        self.castle_states = castle_states if castle_states else {'white_king_moved': False,
+                                                                  'black_king_moved': False,
+                                                                  'QS_rook_b_moved': False,
+                                                                  'QS_rook_w_moved': False,
+                                                                  'KS_rook_b_moved': False,
+                                                                  'KS_rook_w_moved': False, }
+
         self.can_en_passant = can_en_passant
         self.special_board_states: list[list] = []
 
@@ -353,28 +353,28 @@ class Board:
         return next_boards
 
     def getNoSlide(self, clear) -> list[int]:
-        return self._getSlide(clear, Board.nortOne, Board.NOT_RANK_8, Board.ALL_DEFINED)
+        return self._getSlide(clear, HexBoard.nortOne, HexBoard.NOT_RANK_8, HexBoard.ALL_DEFINED)
 
     def getSoSlide(self, clear) -> list[int]:
-        return self._getSlide(clear, Board.soutOne, Board.NOT_RANK_1, Board.ALL_DEFINED)
+        return self._getSlide(clear, HexBoard.soutOne, HexBoard.NOT_RANK_1, HexBoard.ALL_DEFINED)
 
     def getEaSlide(self, clear) -> list[int]:
-        return self._getSlide(clear, Board.eastOne, Board.NOT_H_FILE, Board.ALL_DEFINED)
+        return self._getSlide(clear, HexBoard.eastOne, HexBoard.NOT_H_FILE, HexBoard.ALL_DEFINED)
 
     def getWeSlide(self, clear) -> list[int]:
-        return self._getSlide(clear, Board.westOne, Board.NOT_A_FILE, Board.ALL_DEFINED)
+        return self._getSlide(clear, HexBoard.westOne, HexBoard.NOT_A_FILE, HexBoard.ALL_DEFINED)
 
     def getNoEaSlide(self, clear) -> list[int]:
-        return self._getSlide(clear, Board.noEaOne, Board.NOT_RANK_8, Board.NOT_H_FILE)
+        return self._getSlide(clear, HexBoard.noEaOne, HexBoard.NOT_RANK_8, HexBoard.NOT_H_FILE)
 
     def getNoWeSlide(self, clear) -> list[int]:
-        return self._getSlide(clear, Board.noWeOne, Board.NOT_RANK_8, Board.NOT_A_FILE)
+        return self._getSlide(clear, HexBoard.noWeOne, HexBoard.NOT_RANK_8, HexBoard.NOT_A_FILE)
 
     def getSoEaSlide(self, clear) -> list[int]:
-        return self._getSlide(clear, Board.soEaOne, Board.NOT_RANK_1, Board.NOT_H_FILE)
+        return self._getSlide(clear, HexBoard.soEaOne, HexBoard.NOT_RANK_1, HexBoard.NOT_H_FILE)
 
     def getSoWeSlide(self, clear) -> list[int]:
-        return self._getSlide(clear, Board.soWeOne, Board.NOT_RANK_1, Board.NOT_A_FILE)
+        return self._getSlide(clear, HexBoard.soWeOne, HexBoard.NOT_RANK_1, HexBoard.NOT_A_FILE)
 
     # PAWN MOVES
 
@@ -398,7 +398,6 @@ class Board:
             clear) & self.NOT_H_FILE & ~self.white_pieces & self.black_pieces
         noEaOne_clear = self.noEaOne(
             clear) & self.NOT_A_FILE & ~self.white_pieces & self.black_pieces
-            
 
         if self.can_en_passant:
             last_end = self.last_end_square
@@ -430,15 +429,15 @@ class Board:
 
         if nortOne:
             # promotion check
-            if start_square >=48 and start_square <= 55:
+            if start_square >= 48 and start_square <= 55:
                 next_boards.append(
-                    ((self.board ^ bitboard) & ~nortOne_clear) | (nortOne_clear & Board.ALL_WHITE_ROOKS))
+                    ((self.board ^ bitboard) & ~nortOne_clear) | (nortOne_clear & HexBoard.ALL_WHITE_ROOKS))
                 next_boards.append(
-                    ((self.board ^ bitboard) & ~nortOne_clear) | (nortOne_clear & Board.ALL_WHITE_KNIGHTS))
+                    ((self.board ^ bitboard) & ~nortOne_clear) | (nortOne_clear & HexBoard.ALL_WHITE_KNIGHTS))
                 next_boards.append(
-                    ((self.board ^ bitboard) & ~nortOne_clear) | (nortOne_clear & Board.ALL_WHITE_BISHOPS))
+                    ((self.board ^ bitboard) & ~nortOne_clear) | (nortOne_clear & HexBoard.ALL_WHITE_BISHOPS))
                 next_boards.append(
-                    ((self.board ^ bitboard) & ~nortOne_clear) | (nortOne_clear & Board.ALL_WHITE_QUEENS))
+                    ((self.board ^ bitboard) & ~nortOne_clear) | (nortOne_clear & HexBoard.ALL_WHITE_QUEENS))
             else:
                 next_boards.append(
                     ((self.board ^ bitboard) & ~nortOne_clear) | nortOne)
@@ -494,17 +493,16 @@ class Board:
                 self.special_board_states.append(
                     [((self.board ^ bitboard) & ~soutTwo_clear) | soutTwo, self.get_square_from_piece(soutTwo_clear), 1, self.get_square_from_piece(soutOne_clear)])
 
-
         if soutOne:
-            if start_square >=8 and start_square <= 15:
+            if start_square >= 8 and start_square <= 15:
                 next_boards.append(
-                    ((self.board ^ bitboard) & ~soutOne_clear) | (soutOne_clear & Board.ALL_BLACK_ROOKS))
+                    ((self.board ^ bitboard) & ~soutOne_clear) | (soutOne_clear & HexBoard.ALL_BLACK_ROOKS))
                 next_boards.append(
-                    ((self.board ^ bitboard) & ~soutOne_clear) | (soutOne_clear & Board.ALL_BLACK_KNIGHTS))
+                    ((self.board ^ bitboard) & ~soutOne_clear) | (soutOne_clear & HexBoard.ALL_BLACK_KNIGHTS))
                 next_boards.append(
-                    ((self.board ^ bitboard) & ~soutOne_clear) | (soutOne_clear & Board.ALL_BLACK_BISHOPS))
+                    ((self.board ^ bitboard) & ~soutOne_clear) | (soutOne_clear & HexBoard.ALL_BLACK_BISHOPS))
                 next_boards.append(
-                    ((self.board ^ bitboard) & ~soutOne_clear) | (soutOne_clear & Board.ALL_BLACK_QUEENS))
+                    ((self.board ^ bitboard) & ~soutOne_clear) | (soutOne_clear & HexBoard.ALL_BLACK_QUEENS))
             else:
                 next_boards.append(
                     ((self.board ^ bitboard) & ~soutOne_clear) | soutOne)
@@ -594,49 +592,48 @@ class Board:
             # print(i)
 
             square = self.get_piece_from_square(i)
-            piece = square & Board.PIECE_MASK
+            piece = square & HexBoard.PIECE_MASK
             # print(bin(piece), bin(square), bin(self.PIECE_MASK))
-            color = square & Board.COLOR_MASK
+            color = square & HexBoard.COLOR_MASK
 
             clear = 0xF << (i * 4)  # 0xf00000000000
 
             if square == 0 or color != color_to_look_for:
                 continue
-            elif piece == Board.PAWN and color == Board.WHITE:
+            elif piece == HexBoard.PAWN and color == HexBoard.WHITE:
                 attack_board |= self.pawn_attacks_white(clear)
 
-            elif piece == Board.PAWN and color == Board.BLACK:
+            elif piece == HexBoard.PAWN and color == HexBoard.BLACK:
                 attack_board |= self.pawn_attacks_black(clear)
 
-            elif piece == Board.KNIGHT:
+            elif piece == HexBoard.KNIGHT:
                 for move in self.knight_moves(clear):
                     attack_board |= move
 
-            elif piece == Board.ROOK:
+            elif piece == HexBoard.ROOK:
                 for move in self.rook_moves(clear):
                     attack_board |= move
 
-            elif piece == Board.BISHOP:
+            elif piece == HexBoard.BISHOP:
                 for move in self.bishop_moves(clear):
                     attack_board |= move
 
-            elif piece == Board.QUEEN:
+            elif piece == HexBoard.QUEEN:
                 for move in self.queen_moves(clear):
                     attack_board |= move
 
-            elif piece == Board.KING:
+            elif piece == HexBoard.KING:
                 for move in self.king_moves(clear):
                     attack_board |= move
-        
-        return attack_board
 
+        return attack_board
 
     def check_king_side_castle(self, color):
         square1 = 0xF << ((5 if color == self.BLACK else 61) * 4)
         square2 = 0xF << ((6 if color == self.BLACK else 62) * 4)
 
         not_king_moved = not self.castle_states['white_king_moved'] if color == self.BLACK else not self.castle_states['black_king_moved']
-        not_rook_moved =  not self.castle_states['KS_rook_w_moved'] if color == self.BLACK else not self.castle_states['KS_rook_b_moved']
+        not_rook_moved = not self.castle_states['KS_rook_w_moved'] if color == self.BLACK else not self.castle_states['KS_rook_b_moved']
 
         # print(self.attack_board & square1, self.attack_board & square2, not_king_moved, not_rook_moved)
         square1_not_check_and_no_piece = self.attack_board & square1 == 0 and self.white_pieces & square1 == 0 and self.black_pieces & square1 == 0
@@ -646,8 +643,8 @@ class Board:
 
         if square1_not_check_and_no_piece and square2_not_check_and_no_piece and not_king_moved and not_rook_moved:
             return True
-        return False 
-            
+        return False
+
     def check_queen_side_castle(self, color):
         # print(color)
         square1 = 0xF << ((2 if color == self.BLACK else 58) * 4)
@@ -658,9 +655,8 @@ class Board:
         # print(hex(self.attack_board), hex(self.attack_board))
         # print(hex(self.attack_board & square1), hex(self.attack_board & square2))
 
-
         not_king_moved = not self.castle_states['white_king_moved'] if color == self.BLACK else not self.castle_states['black_king_moved']
-        not_rook_moved =   not self.castle_states['QS_rook_w_moved'] if color == self.BLACK else not self.castle_states['QS_rook_b_moved']
+        not_rook_moved = not self.castle_states['QS_rook_w_moved'] if color == self.BLACK else not self.castle_states['QS_rook_b_moved']
         no_piece_on_3 = self.white_pieces & square3 == 0 and self.black_pieces & square3 == 0
         square1_not_check_and_no_piece = self.attack_board & square1 == 0 and self.white_pieces & square1 == 0 and self.black_pieces & square1 == 0
         square2_not_check_and_no_piece = self.attack_board & square2 == 0 and self.white_pieces & square2 == 0 and self.black_pieces & square2 == 0
@@ -670,18 +666,14 @@ class Board:
 
         if square1_not_check_and_no_piece and square2_not_check_and_no_piece and no_piece_on_3 and not_king_moved and not_rook_moved:
             return True
-        return False 
-    
-
-    # def get_boards_from_moves_lists(color_board, valid_move_check, initial_location, move_list):
-    
-    def get_check_status(self, king_square):
-        if king_square & self.attack_board:            
-            return True
         return False
 
+    # def get_boards_from_moves_lists(color_board, valid_move_check, initial_location, move_list):
 
-
+    def get_check_status(self, king_square):
+        if king_square & self.attack_board:
+            return True
+        return False
 
     '''Given any board hex representation,
     outputs a list of other board hex representations
@@ -702,41 +694,41 @@ class Board:
         for i in range(64):
 
             square = self.get_piece_from_square(i)
-            piece = square & Board.PIECE_MASK
-            color = square & Board.COLOR_MASK
+            piece = square & HexBoard.PIECE_MASK
+            color = square & HexBoard.COLOR_MASK
 
             clear = 0xF << (i * 4)  # 0xf00000000000
             bitboard = square << (i * 4)  # 0x300000000000
 
             if square == 0 or color == self.color_to_move:
                 continue
-            elif piece == Board.PAWN and color == Board.WHITE:
+            elif piece == HexBoard.PAWN and color == HexBoard.WHITE:
                 next_pawn_boards.append(self.pawn_moves_white(square, i))
 
-            elif piece == Board.PAWN and color == Board.BLACK:
+            elif piece == HexBoard.PAWN and color == HexBoard.BLACK:
                 next_pawn_boards.append(self.pawn_moves_black(square, i))
 
-            elif piece == Board.KNIGHT:
+            elif piece == HexBoard.KNIGHT:
                 temp = [bitboard]
                 temp += (self.knight_moves(clear))
                 next_knight_boards.append(temp)
 
-            elif piece == Board.ROOK:
+            elif piece == HexBoard.ROOK:
                 temp = [bitboard]
                 temp += (self.rook_moves(clear))
                 next_rook_boards.append(temp)
 
-            elif piece == Board.BISHOP:
+            elif piece == HexBoard.BISHOP:
                 temp = [bitboard]
                 temp += (self.bishop_moves(clear))
                 next_bishop_boards.append(temp)
 
-            elif piece == Board.QUEEN:
+            elif piece == HexBoard.QUEEN:
                 temp = [bitboard]
                 temp += (self.queen_moves(clear))
                 next_queen_boards.append(temp)
 
-            elif piece == Board.KING:
+            elif piece == HexBoard.KING:
                 # print('in')
                 temp = [bitboard]
                 temp += (self.king_moves(clear))
@@ -748,11 +740,9 @@ class Board:
         def valid_moves_b(x): return x & ~self.black_pieces | (
             x & self.white_pieces)
 
-        all_boards: list[Board] = []
-        next_color = Board.WHITE if self.color_to_move == Board.BLACK else Board.BLACK
-        valid_move_check = valid_moves_w if self.color_to_move == Board.BLACK else valid_moves_b
-
-
+        all_boards: list[HexBoard] = []
+        next_color = HexBoard.WHITE if self.color_to_move == HexBoard.BLACK else HexBoard.BLACK
+        valid_move_check = valid_moves_w if self.color_to_move == HexBoard.BLACK else valid_moves_b
 
         # print(next_king_boards)
         king_location = next_king_boards[0][0]
@@ -761,58 +751,63 @@ class Board:
         if king_location & self.attack_board:
             IN_CHECK = True
 
-        king_side_castle = self.check_king_side_castle(self.color_to_move) if not IN_CHECK else False
-        queen_side_castle = self.check_queen_side_castle(self.color_to_move) if not IN_CHECK else False
+        king_side_castle = self.check_king_side_castle(
+            self.color_to_move) if not IN_CHECK else False
+        queen_side_castle = self.check_queen_side_castle(
+            self.color_to_move) if not IN_CHECK else False
 
         if king_side_castle:
             new_castle_state = self.castle_states.copy()
-            if self.color_to_move: # white
+            if self.color_to_move:  # white
                 temp = 0x0
                 temp = self.board ^ king_location
-                temp = temp & ~(0xF << (7* 4))
+                temp = temp & ~(0xF << (7 * 4))
                 temp = temp | 0x6200000
 
                 new_castle_state['white_king_moved'] = True
                 new_castle_state['QS_rook_w_moved'] = True
                 new_castle_state['KS_rook_w_moved'] = True
 
-                all_boards.append(Board(board=temp, color_to_move=next_color, castle_states=new_castle_state))
-            else: # black
+                all_boards.append(
+                    HexBoard(board=temp, color_to_move=next_color, castle_states=new_castle_state))
+            else:  # black
                 temp = 0x0
                 temp = self.board ^ king_location
-                temp = temp & ~(0xF << (63* 4))
+                temp = temp & ~(0xF << (63 * 4))
                 temp = temp | 0x0620000000000000000000000000000000000000000000000000000000000000
                 new_castle_state['black_king_moved'] = True
                 new_castle_state['QS_rook_b_moved'] = True
                 new_castle_state['KS_rook_b_moved'] = True
 
-                all_boards.append(Board(board=temp, color_to_move=next_color, castle_states=new_castle_state))
+                all_boards.append(
+                    HexBoard(board=temp, color_to_move=next_color, castle_states=new_castle_state))
 
         if queen_side_castle:
             new_castle_state = self.castle_states.copy()
-            if self.color_to_move: # white
+            if self.color_to_move:  # white
                 temp = 0x0
                 temp = self.board ^ king_location
-                temp = temp & ~(0xF << (0* 4))
+                temp = temp & ~(0xF << (0 * 4))
                 temp = temp | 0x2600
                 # self.print_board_hex(temp)
                 new_castle_state['white_king_moved'] = True
                 new_castle_state['QS_rook_w_moved'] = True
                 new_castle_state['KS_rook_w_moved'] = True
 
-                all_boards.append(Board(board=temp, color_to_move=next_color, castle_states=new_castle_state))
-            else: # black
+                all_boards.append(
+                    HexBoard(board=temp, color_to_move=next_color, castle_states=new_castle_state))
+            else:  # black
                 temp = 0x0
                 temp = self.board ^ king_location
-                temp = temp & ~(0xF << (56* 4))
+                temp = temp & ~(0xF << (56 * 4))
                 temp = temp | 0x260000000000000000000000000000000000000000000000000000000000
 
                 new_castle_state['black_king_moved'] = True
                 new_castle_state['QS_rook_b_moved'] = True
                 new_castle_state['KS_rook_b_moved'] = True
 
-                all_boards.append(Board(board=temp, color_to_move=next_color, castle_states=new_castle_state))
-
+                all_boards.append(
+                    HexBoard(board=temp, color_to_move=next_color, castle_states=new_castle_state))
 
         # self.print_board_hex(king_location)
         king_piece_moves = next_king_boards[0][1:]
@@ -821,7 +816,7 @@ class Board:
         # print('inaa')
         if king_piece_moves:
             # print('in')
-            color_board = Board.ALL_WHITE_KINGS if self.color_to_move == Board.BLACK else Board.ALL_BLACK_KINGS
+            color_board = HexBoard.ALL_WHITE_KINGS if self.color_to_move == HexBoard.BLACK else HexBoard.ALL_BLACK_KINGS
             # for each move of this king (skip idx 0 -- 'current pos')
             for move in king_piece_moves:
 
@@ -829,9 +824,8 @@ class Board:
                 # print(hex(move))
                 # print(hex(Board.ALL_DEFINED))
                 # self.print_board_hex((move))
-                
 
-                if valid_move_check(move) and move and not move & self.attack_board and move & Board.ALL_DEFINED:
+                if valid_move_check(move) and move and not move & self.attack_board and move & HexBoard.ALL_DEFINED:
                     # all_king |= move
                     # print('inee')
                     # self.print_board_hex((move))
@@ -853,23 +847,24 @@ class Board:
                     temp = temp | (move & color_board)
                     # print(hex(temp))
                     # self.print_board_hex(self.attack_board)
-                    
+
                     new_castle_states = self.castle_states
                     if not self.castle_states['white_king_moved'] or not self.castle_states['black_king_moved']:
                         new_castle_states = self.castle_states.copy()
-                        if self.color_to_move == Board.WHITE:
+                        if self.color_to_move == HexBoard.WHITE:
                             new_castle_states['white_king_moved'] = True
-                        if self.color_to_move == Board.BLACK:
+                        if self.color_to_move == HexBoard.BLACK:
                             new_castle_states['black_king_moved'] = True
 
-                    all_boards.append(Board(board=temp, color_to_move=next_color, castle_states=new_castle_states))
-                # print("---------")   
+                    all_boards.append(HexBoard(
+                        board=temp, color_to_move=next_color, castle_states=new_castle_states))
+                # print("---------")
                     # self.print_board_hex(Board(board=temp, color_to_move=next_color, castle_states=self.castle_states).attack_board)
 
-
         for special_board, last_move_square, en_passant, en_pass_fen in self.special_board_states:
-            all_boards.append(Board(board=special_board, color_to_move=next_color, last_end_square=last_move_square, can_en_passant=en_passant, castle_states=self.castle_states, en_passant_square_fen=en_pass_fen))
-            
+            all_boards.append(HexBoard(board=special_board, color_to_move=next_color, last_end_square=last_move_square,
+                              can_en_passant=en_passant, castle_states=self.castle_states, en_passant_square_fen=en_pass_fen))
+
             # print(hex((special_board)))
             # (Board(board=special_board, color_to_move=next_color,
             #                         last_end_square=last_move_square, can_en_passant=en_passant)).print_board_hex()
@@ -878,8 +873,9 @@ class Board:
 
         for pawn in next_pawn_boards:
             for move in pawn:
-                all_boards.append(Board(board=move, color_to_move=next_color, castle_states=self.castle_states))
-                
+                all_boards.append(HexBoard(
+                    board=move, color_to_move=next_color, castle_states=self.castle_states))
+
                 # self.print_board_hex(move)
                 # self.print_board_hex(Board(board=move, color_to_move=next_color).attack_board)
 
@@ -887,14 +883,14 @@ class Board:
             if knight:
                 # pop the first piece -- which we set to be the square the knight is moving from
                 current_piece = knight[0]
-                color_board = Board.ALL_WHITE_KNIGHTS if self.color_to_move == Board.BLACK else Board.ALL_BLACK_KNIGHTS
+                color_board = HexBoard.ALL_WHITE_KNIGHTS if self.color_to_move == HexBoard.BLACK else HexBoard.ALL_BLACK_KNIGHTS
 
                 # for each move of this knight (skip idx 0 -- 'current pos')
                 for move in knight[1:]:
                     # check if valid for white or black (TODO: black)
                     # print("---------")
-                    
-                    if valid_move_check(move) and move and (move & Board.ALL_DEFINED):
+
+                    if valid_move_check(move) and move and (move & HexBoard.ALL_DEFINED):
                         temp = 0x0
                         # print(hex(move))
 
@@ -906,10 +902,9 @@ class Board:
                         # adds the new piece with the right value
                         temp = temp | (move & color_board)
                         # print(hex(temp))
-                        
-                        
 
-                        all_boards.append(Board(board=temp, color_to_move=next_color, castle_states=self.castle_states))
+                        all_boards.append(HexBoard(
+                            board=temp, color_to_move=next_color, castle_states=self.castle_states))
                         # self.print_board_hex(temp)
                         # self.print_board_hex(Board(board=temp, color_to_move=next_color).attack_board)
                     # print("------------------")
@@ -918,12 +913,12 @@ class Board:
             if rook:
                 # pop the first piece -- which we set to be the square the rook is moving from
                 current_piece = rook[0]
-                color_board = Board.ALL_WHITE_ROOKS if self.color_to_move == Board.BLACK else Board.ALL_BLACK_ROOKS
+                color_board = HexBoard.ALL_WHITE_ROOKS if self.color_to_move == HexBoard.BLACK else HexBoard.ALL_BLACK_ROOKS
 
                 # for each move of this rook (skip idx 0 -- 'current pos')
                 for move in rook[1:]:
                     # check if valid for white or black (TODO: black)
-                    if valid_move_check(move) and move and (move & Board.ALL_DEFINED):
+                    if valid_move_check(move) and move and (move & HexBoard.ALL_DEFINED):
                         temp = 0x0
                         # remove current piece
                         temp = (self.board ^ current_piece)
@@ -945,7 +940,8 @@ class Board:
                             new_castle_states = self.castle_states.copy()
                             new_castle_states['KS_rook_w_moved'] = True
 
-                        all_boards.append(Board(board=temp, color_to_move=next_color, castle_states=new_castle_states))
+                        all_boards.append(HexBoard(
+                            board=temp, color_to_move=next_color, castle_states=new_castle_states))
                         # self.print_board_hex(temp)
                         # self.print_board_hex(Board(board=temp, color_to_move=next_color, castle_states=self.castle_states).attack_board)
 
@@ -953,12 +949,12 @@ class Board:
             if bishop_piece_moves:
                 # pop the first piece -- which we set to be the square the bishop is moving from
                 current_piece = bishop_piece_moves[0]
-                color_board = Board.ALL_WHITE_BISHOPS if self.color_to_move == self.BLACK else Board.ALL_BLACK_BISHOPS
+                color_board = HexBoard.ALL_WHITE_BISHOPS if self.color_to_move == self.BLACK else HexBoard.ALL_BLACK_BISHOPS
 
                 # for each move of this bishop (skip idx 0 -- 'current pos')
                 for move in bishop_piece_moves[1:]:
                     # check if valid for white or black (TODO: black)
-                    if valid_move_check(move) and move and (move & Board.ALL_DEFINED):
+                    if valid_move_check(move) and move and (move & HexBoard.ALL_DEFINED):
                         temp = 0x0
                         # remove current piece
                         temp = (self.board ^ current_piece)
@@ -966,23 +962,23 @@ class Board:
                         # adds the new piece with the right value
                         temp = temp | (move & color_board)
 
-                        all_boards.append(Board(board=temp, color_to_move=next_color, castle_states=self.castle_states))
+                        all_boards.append(HexBoard(
+                            board=temp, color_to_move=next_color, castle_states=self.castle_states))
                         # print(hex((temp)))
                         # print(hex((Board(board=temp, color_to_move=next_color, castle_states=self.castle_states).attack_board)))
                         # self.print_board_hex(temp)
                         # self.print_board_hex(Board(board=temp, color_to_move=next_color, castle_states=self.castle_states).attack_board)
-                        
 
         for queen_piece_moves in next_queen_boards:
             if queen_piece_moves:
                 # pop the first piece -- which we set to be the square the queen is moving from
                 current_piece = queen_piece_moves[0]
-                color_board = Board.ALL_WHITE_QUEENS if self.color_to_move == Board.BLACK else Board.ALL_BLACK_QUEENS
+                color_board = HexBoard.ALL_WHITE_QUEENS if self.color_to_move == HexBoard.BLACK else HexBoard.ALL_BLACK_QUEENS
 
                 # for each move of this queen (skip idx 0 -- 'current pos')
                 for move in queen_piece_moves[1:]:
                     # check if valid for white or black (TODO: black)
-                    if valid_move_check(move) and move and (move & Board.ALL_DEFINED):
+                    if valid_move_check(move) and move and (move & HexBoard.ALL_DEFINED):
                         temp = 0x0
                         # remove current piece
                         temp = (self.board ^ current_piece)
@@ -990,7 +986,8 @@ class Board:
                         # adds the new piece with the right value
                         temp = temp | (move & color_board)
 
-                        all_boards.append(Board(board=temp, color_to_move=next_color, castle_states=self.castle_states))
+                        all_boards.append(HexBoard(
+                            board=temp, color_to_move=next_color, castle_states=self.castle_states))
 
                         # self.print_board_hex(temp)
                         # self.print_board_hex(Board(board=temp, color_to_move=next_color, castle_states=self.castle_states).attack_board)
@@ -1003,18 +1000,20 @@ class Board:
                 if king_location & possible_state.board == 0:
                     available_moves.append(possible_state)
 
-                # blocking pieces, pieces moving in the way of the king 
-                new_attack_board = possible_state.generate_attack_board(self.color_to_move)
+                # blocking pieces, pieces moving in the way of the king
+                new_attack_board = possible_state.generate_attack_board(
+                    self.color_to_move)
                 # self.print_board_hex(possible_state.generate_attack_board(self.color_to_move))
 
                 if new_attack_board & king_location == 0:
                     available_moves.append(possible_state)
                     # possible_state.print_board_hex()
-                
+
         else:
             # making sure the piece cannot move to create a check
             for possible_state in all_boards:
-                new_attack_board = possible_state.generate_attack_board(self.color_to_move)
+                new_attack_board = possible_state.generate_attack_board(
+                    self.color_to_move)
                 if new_attack_board & king_location == 0:
                     available_moves.append(possible_state)
 
@@ -1026,24 +1025,22 @@ class Board:
                 print('black wins' if self.color_to_move else 'white_wins')
             else:
                 print('draw')
-                self.draw = True 
+                self.draw = True
 
-        
         # for move in available_moves:
         #     print(hex(move.board))
         #     self.print_board_hex(move.attack_board)
 
         return available_moves
-    
 
-    def material_balance(self): 
+    def material_balance(self):
         PIECE_VALUES = {
             self.PAWN: 1,  # Pawn
             self.KNIGHT: 3,  # Knight
-            self.BISHOP: 3, # Bishop
+            self.BISHOP: 3,  # Bishop
             self.ROOK: 5,  # Rook
             self.QUEEN: 9,
-        } 
+        }
 
         white_total = 0
         black_total = 0
@@ -1051,15 +1048,16 @@ class Board:
             square = self.get_piece_from_square(i)
             color = square & self.COLOR_MASK
             piece = square & self.PIECE_MASK
-            
+
             if color == self.WHITE:
-                white_total += PIECE_VALUES[piece] if PIECE_VALUES.get(piece) else 0
+                white_total += PIECE_VALUES[piece] if PIECE_VALUES.get(
+                    piece) else 0
             else:
-                black_total += PIECE_VALUES[piece] if PIECE_VALUES.get(piece) else 0
+                black_total += PIECE_VALUES[piece] if PIECE_VALUES.get(
+                    piece) else 0
 
         # print(white_total, black_total)
         return white_total - black_total
-    
 
     def get_reward(self):
         # Define your reward logic here
@@ -1070,14 +1068,13 @@ class Board:
                 return 0
         # Intermediate rewards can be added here
         return self.material_balance()
-    
+
     # def is_game_over(self):
     #     return self.game_is_over
 
     def step(self, action):
         print(action)
         return self.generate_all_possible_next_board_states()[action], self.get_reward(), self.game_is_over
-        
 
 
 # '''NOT CURRENTLY BEING USED : Function takes in piece ?? outputs color integer??'''

@@ -1,310 +1,23 @@
+import random
+import matplotlib.pyplot as plt
+import numpy as np
 import chess
-from hex_rep import Board
 
-from StockFishEvalHex import StockFishEvaluateHexPosition
-from ChessAIHexBoard import ChessAIHexBoard
+from board_hexrep import HexBoard
+from test_board import init_position
 
-from EngineAI import EngineAI
-
-
-
-
-def init_position() -> Board:
-    board = Board()
-    board.board = 0x0
-    board.add_piece(0, board.WHITE | board.ROOK)
-    board.add_piece(1, board.WHITE | board.KNIGHT)
-    board.add_piece(2, board.WHITE | board.BISHOP)
-    board.add_piece(3, board.WHITE | board.QUEEN)
-    board.add_piece(4, board.WHITE | board.KING)
-    board.add_piece(5, board.WHITE | board.BISHOP)
-    board.add_piece(6, board.WHITE | board.KNIGHT)
-    board.add_piece(7, board.WHITE | board.ROOK)
-    for i in range(8, 16):
-        board.add_piece(i, board.WHITE | board.PAWN)
-    for i in range(48, 56):
-        board.add_piece(i, board.BLACK | board.PAWN)
-    board.add_piece(56, board.BLACK | board.ROOK)
-    board.add_piece(57, board.BLACK | board.KNIGHT)
-    board.add_piece(58, board.BLACK | board.BISHOP)
-    board.add_piece(59, board.BLACK | board.QUEEN)
-    board.add_piece(60, board.BLACK | board.KING)
-    board.add_piece(61, board.BLACK | board.BISHOP)
-    board.add_piece(62, board.BLACK | board.KNIGHT)
-    board.add_piece(63, board.BLACK | board.ROOK)
-
-    return board
-
-def castle_test() -> Board:
-    board = Board()
-    board.board = 0x0
-    board.add_piece(0, board.WHITE | board.ROOK)
-    # board.add_piece(1, board.WHITE | board.KNIGHT)
-    # board.add_piece(2, board.WHITE | board.BISHOP)
-    # board.add_piece(3, board.WHITE | board.QUEEN)
-    board.add_piece(4, board.WHITE | board.KING)
-    # board.add_piece(5, board.WHITE | board.BISHOP)
-    board.add_piece(6, board.WHITE | board.KNIGHT)
-    board.add_piece(7, board.WHITE | board.ROOK)
-    for i in range(8, 16):
-        if i != 12:
-            board.add_piece(i, board.WHITE | board.PAWN)
-    # board.add_piece( 17, board.BLACK | board.PAWN)
-    # board.add_piece( 22, board.BLACK | board.PAWN)
-    for i in range(48, 56):
-        board.add_piece(i, board.BLACK | board.PAWN)
-    board.add_piece(56, board.BLACK | board.ROOK)
-    board.add_piece(57, board.BLACK | board.KNIGHT)
-    board.add_piece(58, board.BLACK | board.BISHOP)
-    board.add_piece(59, board.BLACK | board.QUEEN)
-    board.add_piece(60, board.BLACK | board.KING)
-    board.add_piece(61, board.BLACK | board.BISHOP)
-    board.add_piece(62, board.BLACK | board.KNIGHT)
-    board.add_piece(63, board.BLACK | board.ROOK)
-    board.add_piece(36, board.BLACK | board.ROOK)
-
-
-    return board
-
-def move_out_of_block() -> Board:
-    board = Board()
-    board.board = 0x0
-    board.add_piece(0, board.WHITE | board.ROOK)
-    # board.add_piece(1, board.WHITE | board.KNIGHT)
-    # board.add_piece(2, board.WHITE | board.BISHOP)
-    # board.add_piece(3, board.WHITE | board.QUEEN)
-    board.add_piece(4, board.WHITE | board.KING)
-    # board.add_piece(5, board.WHITE | board.BISHOP)
-    board.add_piece(12, board.WHITE | board.KNIGHT)
-    board.add_piece(7, board.WHITE | board.ROOK)
-    for i in range(8, 16):
-        if i != 12:
-            board.add_piece(i, board.WHITE | board.PAWN)
-    # board.add_piece( 17, board.BLACK | board.PAWN)
-    # board.add_piece( 22, board.BLACK | board.PAWN)
-    for i in range(48, 56):
-        board.add_piece(i, board.BLACK | board.PAWN)
-    board.add_piece(56, board.BLACK | board.ROOK)
-    board.add_piece(57, board.BLACK | board.KNIGHT)
-    board.add_piece(58, board.BLACK | board.BISHOP)
-    board.add_piece(59, board.BLACK | board.QUEEN)
-    board.add_piece(60, board.BLACK | board.KING)
-    board.add_piece(61, board.BLACK | board.BISHOP)
-    board.add_piece(62, board.BLACK | board.KNIGHT)
-    board.add_piece(63, board.BLACK | board.ROOK)
-    board.add_piece(36, board.BLACK | board.ROOK)
-
-
-    return board
-
-def test_promo() -> Board:
-    board = Board()
-    board.board = 0x0
-    # board.add_piece(0, board.WHITE | board.ROOK)
-    # board.add_piece(1, board.WHITE | board.KNIGHT)
-    # board.add_piece(2, board.WHITE | board.BISHOP)
-    # board.add_piece(3, board.WHITE | board.QUEEN)
-    board.add_piece(4, board.WHITE | board.KING)
-    # board.add_piece(5, board.WHITE | board.BISHOP)
-    # board.add_piece(6, board.WHITE | board.KNIGHT)
-    # board.add_piece(7, board.WHITE | board.ROOK)
-    for i in range(8, 9):
-        if i != 12:
-            board.add_piece(i, board.WHITE | board.PAWN)
-    # board.add_piece( 17, board.BLACK | board.PAWN)
-    # board.add_piece( 22, board.BLACK | board.PAWN)
-    # for i in range(48, 56):
-    #     board.add_piece(i, board.BLACK | board.PAWN)
-    # board.add_piece(56, board.BLACK | board.ROOK)
-    # board.add_piece(57, board.BLACK | board.KNIGHT)
-    # board.add_piece(58, board.BLACK | board.BISHOP)
-    # board.add_piece(59, board.BLACK | board.QUEEN)
-    board.add_piece(60, board.BLACK | board.KING)
-    # board.add_piece(61, board.BLACK | board.BISHOP)
-    # board.add_piece(62, board.BLACK | board.KNIGHT)
-    # board.add_piece(63, board.BLACK | board.ROOK)
-    # board.add_piece(36, board.BLACK | board.ROOK)
-
-    board.add_piece(50, board.WHITE | board.PAWN)
-    # board.add_piece(0, board.WHITE | board.ROOK)
-
-    # board.add_piece(7, board.WHITE | board.ROOK)
-
-
-
-
-    return board
-
-def test_position() -> Board:
-    board = Board()
-    board.board = 0x0
-    board.add_piece(0, board.WHITE | board.ROOK)
-    board.add_piece(1, board.WHITE | board.KNIGHT)
-    # board.add_piece( 2, board.WHITE | board.BISHOP)
-    board.add_piece(3, board.WHITE | board.QUEEN)
-    board.add_piece(4, board.WHITE | board.KING)
-    board.add_piece(5, board.WHITE | board.BISHOP)
-    board.add_piece(6, board.WHITE | board.KNIGHT)
-    # board.add_piece( 7, board.WHITE | board.ROOK)
-    # board.add_piece(32, board.WHITE | board.PAWN)
-    board.add_piece(39, board.WHITE | board.PAWN)
-    board.add_piece(35, board.WHITE | board.BISHOP)
-
-    for i in range(9, 13):
-        board.add_piece(i, board.WHITE | board.PAWN)
-    # for i in range(48, 56):
-    #     board.add_piece( i, board.BLACK | board.PAWN)
-    board.add_piece(56, board.BLACK | board.ROOK)
-    board.add_piece(57, board.BLACK | board.KNIGHT)
-    board.add_piece(58, board.BLACK | board.BISHOP)
-    board.add_piece(59, board.BLACK | board.QUEEN)
-    # board.add_piece( 60, board.BLACK | board.KING)
-    board.add_piece(61, board.BLACK | board.BISHOP)
-    board.add_piece(62, board.BLACK | board.KNIGHT)
-    board.add_piece(63, board.BLACK | board.ROOK)
-
-    # board.add_piece( 33, board.WHITE | board.KNIGHT)
-    board.add_piece(44, board.WHITE | board.ROOK)
-    board.add_piece(47, board.BLACK | board.ROOK)
-    board.add_piece(40, board.WHITE | board.PAWN)
-    board.add_piece(23, board.BLACK | board.PAWN)
-
-    board.color_to_move = 0x0
-    board.last_end_square = 0x0
-    board.castle_states = 0x0
-    board.can_en_passant = 0x0
-    return board
-
-def test_sliding() -> Board:
-    board = Board()
-    board.board = 0x0
-    board.add_piece(0, board.WHITE | board.ROOK)
-    board.add_piece(1, board.WHITE | board.KNIGHT)
-    board.add_piece(2, board.WHITE | board.BISHOP)
-    board.add_piece(3, board.WHITE | board.QUEEN)
-    board.add_piece(4, board.WHITE | board.KING)
-    board.add_piece(5, board.WHITE | board.BISHOP)
-    board.add_piece(6, board.WHITE | board.KNIGHT)
-    board.add_piece(7, board.WHITE | board.ROOK)
-    board.add_piece(32, board.WHITE | board.PAWN)
-    board.add_piece(39, board.WHITE | board.PAWN)
-
-    # for i in range(8, 16):
-    #     board.add_piece( i, board.WHITE | board.PAWN)
-    for i in range(48, 56):
-        board.add_piece(i, board.BLACK | board.PAWN)
-    board.add_piece(56, board.BLACK | board.ROOK)
-    board.add_piece(57, board.BLACK | board.KNIGHT)
-    board.add_piece(58, board.BLACK | board.BISHOP)
-    board.add_piece(59, board.BLACK | board.QUEEN)
-    board.add_piece(60, board.BLACK | board.KING)
-    board.add_piece(61, board.BLACK | board.BISHOP)
-    board.add_piece(62, board.BLACK | board.KNIGHT)
-    board.add_piece(63, board.BLACK | board.ROOK)
-
-    # board.add_piece( 33, board.WHITE | board.KNIGHT)
-    board.add_piece(36, board.WHITE | board.ROOK)
-
-    board.color_to_move = 0x0
-    board.last_end_square = 0x0
-    board.castle_states = 0x0
-    board.can_en_passant = 0x0
-
-    return board
-
-def test_en_passant() -> Board:
-    board = Board(en_passant_square_fen=41)
-    board.board = 0x0
-    board.add_piece(0, board.WHITE | board.ROOK)
-    board.add_piece(1, board.WHITE | board.KNIGHT)
-    board.add_piece(2, board.WHITE | board.BISHOP)
-    board.add_piece(3, board.WHITE | board.QUEEN)
-    board.add_piece(4, board.WHITE | board.KING)
-    board.add_piece(5, board.WHITE | board.BISHOP)
-    board.add_piece(6, board.WHITE | board.KNIGHT)
-    board.add_piece(7, board.WHITE | board.ROOK)
-    # for i in range(8, 16):
-    #     board.add_piece( i, board.WHITE | board.PAWN)
-    for i in range(48, 56):
-        board.add_piece(i, board.BLACK | board.PAWN)
-    board.add_piece(56, board.BLACK | board.ROOK)
-    board.add_piece(57, board.BLACK | board.KNIGHT)
-    board.add_piece(58, board.BLACK | board.BISHOP)
-    board.add_piece(59, board.BLACK | board.QUEEN)
-    board.add_piece(60, board.BLACK | board.KING)
-    board.add_piece(61, board.BLACK | board.BISHOP)
-    board.add_piece(62, board.BLACK | board.KNIGHT)
-    board.add_piece(63, board.BLACK | board.ROOK)
-
-    board.add_piece(33, board.BLACK | board.PAWN)
-    board.add_piece(32, board.WHITE | board.PAWN)
-
-    board.color_to_move = 0x0
-    board.last_end_square = 33
-    board.castle_states = 0x0
-    board.can_en_passant = 0x1
-    # board.en_passant_square_fen = 41
-
-    return board
-
-def test_king() -> Board:
-    board = Board()
-    board.board = 0x0
-    board.add_piece(0, board.WHITE | board.ROOK)
-    board.add_piece(1, board.WHITE | board.KNIGHT)
-    board.add_piece(2, board.WHITE | board.BISHOP)
-    board.add_piece(3, board.WHITE | board.QUEEN)
-    # board.add_piece( 4, board.WHITE | board.KING)
-    board.add_piece(5, board.WHITE | board.BISHOP)
-    board.add_piece(6, board.WHITE | board.KNIGHT)
-    board.add_piece(7, board.WHITE | board.ROOK)
-    for i in range(8, 16):
-        board.add_piece(i, board.WHITE | board.PAWN)
-    # board.add_piece( 17, board.BLACK | board.PAWN)
-    # board.add_piece( 22, board.BLACK | board.PAWN)
-    board.add_piece(32, board.WHITE | board.KING)
-
-    for i in range(48, 56):
-        board.add_piece(i, board.BLACK | board.PAWN)
-    board.add_piece(56, board.BLACK | board.ROOK)
-    board.add_piece(57, board.BLACK | board.KNIGHT)
-    board.add_piece(58, board.BLACK | board.BISHOP)
-    board.add_piece(59, board.BLACK | board.QUEEN)
-    board.add_piece(60, board.BLACK | board.KING)
-    board.add_piece(61, board.BLACK | board.BISHOP)
-    board.add_piece(62, board.BLACK | board.KNIGHT)
-    board.add_piece(63, board.BLACK | board.ROOK)
-    board.add_piece(17, board.BLACK | board.ROOK)
-
-    return board
-
-def test_draw() -> Board:
-    board = Board()
-    board.board = 0x0
-    board.add_piece(59, board.BLACK | board.ROOK)
-    board.add_piece(61, board.BLACK | board.ROOK)
-    board.add_piece(47, board.BLACK | board.ROOK)
-    board.add_piece(24, board.BLACK | board.ROOK)
-    board.add_piece(52, board.BLACK | board.ROOK)
-
-
-    board.add_piece(36, board.WHITE | board.KING)
-    board.add_piece(60, board.BLACK | board.KING)
-
-
-
-    return board
-
-
+from sf_eval_hexpos import StockFishEvaluateHexPosition
+from ai_hexboard import HexBoardAI
+from ai_engine import EngineAI
 
 
 def play_stockfish_ChessAIHexBoard():
-    board = Board(init_position().board, Board.BLACK)
+    board = HexBoard(init_position().board, HexBoard.BLACK)
     board.print_board_hex()
 
-    move = ChessAIHexBoard(board).get_best_move(3, 'nega')
+    move = HexBoardAI(board).get_best_move(3, 'nega')
     move.print_board_hex()
-    
+
     max_iter = 256
     i = 0
     while not move.game_is_over and i < max_iter:
@@ -312,17 +25,11 @@ def play_stockfish_ChessAIHexBoard():
         move = stock_fish_eval.stockfish_next_move()
         move = stock_fish_eval.fen_to_board(move)
         move.print_board_hex()
-        
-        move = ChessAIHexBoard(move).get_best_move(3, 'nega')
+
+        move = HexBoardAI(move).get_best_move(3, 'nega')
         move.print_board_hex()
 
-
         i += 1
-
-
-
-import numpy as np
-import matplotlib.pyplot as plt
 
 
 def simulate_games(num_games=5):
@@ -336,14 +43,15 @@ def simulate_games(num_games=5):
         centipawn_losses = engine.play_stock_fish()
         for i in range(min(len(centipawn_losses), max_moves)):
             centipawn_loss_data[game, i] = centipawn_losses[i]
-    
+
     # Calculate the average centipawn loss per move
     average_centipawn_loss_per_move = np.mean(centipawn_loss_data, axis=0)
-    
+
     # Save the data
     np.save('centipawn_loss_data.npy', centipawn_loss_data)
-    np.save('average_centipawn_loss_per_move.npy', average_centipawn_loss_per_move)
-    
+    np.save('average_centipawn_loss_per_move.npy',
+            average_centipawn_loss_per_move)
+
     # Plot the average centipawn loss per move
     plt.plot(range(1, max_moves + 1), average_centipawn_loss_per_move)
     plt.xlabel('Move Number')
@@ -357,8 +65,6 @@ def main():
     # engine = EngineAI(chess.STARTING_BOARD_FEN)
     # print(engine.get_best_move(5, 'nega'))
     # print(engine.get_best_move(5, 'mini'))
-
-
 
     simulate_games()
     # board2 = Board(test_en_passant().board, Board.BLACK, en_passant_square_fen=41)
@@ -375,29 +81,16 @@ def main():
     # move3 = EvaluateBoard(move2).getRandomMove()
     # move3.print_board_hex()
 
-
-
-
-
-
-
-
     # board2.print_board_hex()
-    
-     
+
     # print(stock_fish_eval.fen)
     # print(stock_fish_eval.score)
     # print(stock_fish_eval.interpretted_score)
     # stock_fish_eval.fen_to_hex(stock_fish_eval.fen)
 
-
-
-    
-
     # print(hex(board.board))
     # print(hex_to_board(hex(board.board)))
     # board.print_board_hex()
-
 
     # # Example hex string
     # hex_string = "0xa b c d e c b a9 9 9 9 9 9 9 90 0 0 0 0 0 0 00 0 0 0 0 0 0 00 0 0 0 0 0 0 0 0 0 0 0 0 0 0 01 1 1 1 1 1 1 12 3 4 5 6 4 3 2"
@@ -440,14 +133,8 @@ def main():
     # score = stockfish_evaluation(engine_path, fen)
     # print(score)
 
-
     # score = stockfish_evaluation(engine_path, fen2)
     # print(score)
-
-
-
-
-
 
 
 def play_game(board):
@@ -457,9 +144,6 @@ def play_game(board):
     best_score = -9999
 
     # for move in legal_moves:
-
-
-
 
     # gameover = False
     current_state = board.generate_all_possible_next_board_states()
@@ -471,14 +155,7 @@ def play_game(board):
     #     current_state = board.generate_all_possible_next_board_states()
     #     i += 1
 
-
     # board.print_board_hex()
-
-
-
-
-import numpy as np
-import random
 
 
 class ChessEnv:
@@ -496,14 +173,14 @@ class ChessEnv:
         self.next_states = self.board.generate_all_possible_next_board_states()
 
     def init_board(self):
-        return Board(init_position(), Board.BLACK)
-    
+        return HexBoard(init_position(), HexBoard.BLACK)
+
     def next_states(self):
         return self.board.generate_all_possible_next_board_states()
-    
+
     def apply_move(self):
-        return 
-    
+        return
+
     def get_reward(self):
         if self.is_game_over():
             if self.is_checkmate():
@@ -511,16 +188,17 @@ class ChessEnv:
             elif self.is_draw():
                 return 0
         return self.material_balance()
-    
+
     def material_balance(self):
-        white_material = sum(self.PIECE_VALUES[piece] for piece in self.get_pieces(self.WHITE))
-        black_material = sum(self.PIECE_VALUES[piece] for piece in self.get_pieces(self.BLACK))
+        white_material = sum(self.PIECE_VALUES[piece]
+                             for piece in self.get_pieces(self.WHITE))
+        black_material = sum(self.PIECE_VALUES[piece]
+                             for piece in self.get_pieces(self.BLACK))
         return white_material - black_material
 
 
 if __name__ == "__main__":
     main()
-    
 
 
 # 0xabc0dcba00000000a00200011000000000000000900000000001111043465032
