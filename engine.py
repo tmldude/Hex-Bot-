@@ -34,7 +34,7 @@ class Engine:
                                    sf_level=sf_level,
                                    sf_path=sf_path)
 
-    def play_stock_fish(self):
+    def play_stockfish(self):
         i = 0
         max_iter = 256
 

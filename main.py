@@ -14,7 +14,7 @@ def simulate_games(num_games=5):
         engine = Engine(chess.STARTING_BOARD_FEN)
 
         print(f"Simulating game {game + 1} / {num_games}")
-        centipawn_losses = engine.play_stock_fish()
+        centipawn_losses = engine.play_stockfish()
         for i in range(min(len(centipawn_losses), max_moves)):
             centipawn_loss_data[game, i] = centipawn_losses[i]
 
