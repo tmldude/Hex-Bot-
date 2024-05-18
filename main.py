@@ -26,7 +26,7 @@ def simulate_games(num_games=5):
                  depth=1)
 
         print(f"Simulating game {game + 1} / {num_games}")
-        centipawn_losses = engine.play_stock_fish()
+        centipawn_losses = engine.play_stockfish()
         for i in range(min(len(centipawn_losses), max_moves)):
             centipawn_loss_data_nega[game, i] = centipawn_losses[i]
 

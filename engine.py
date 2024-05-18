@@ -37,7 +37,7 @@ class Engine:
                                    sf_path=sf_path)
         self.depth = depth
 
-    def play_stock_fish(self):
+    def play_stockfish(self):
         i = 0
         max_iter = 256
 
