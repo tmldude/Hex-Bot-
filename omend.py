@@ -12,6 +12,7 @@ class OMEnd(ChessEngine):
                  openings_path,
                  midgames_path,
                  endgames_path,
+                 model_depth,
                  sf_path,
                  sf_level=7):
         self.opening_eval = ChessEvaluator(
@@ -24,7 +25,7 @@ class OMEnd(ChessEngine):
             ModelTypes.KERAS, endgames_path, sf_level, sf_path)
 
         super().__init__(chess.STARTING_BOARD_FEN, self.opening_eval,
-                         dec_type=DecisionTypes.MINIMAX, depth=1)
+                         dec_type=DecisionTypes.MINIMAX, depth=model_depth)
 
     def eval_model(self, board, move_num):
         if 0 <= move_num < OPENING_LIMIT:
