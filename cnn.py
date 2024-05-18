@@ -63,32 +63,32 @@ def train_chess_cnn(model, data_loader, optimizer, scheduler, device, epochs=25)
         scheduler.step(avg_loss)  # Adjust learning rate based on avg_loss
 
 
-if __name__ == "__main__":
-    freeze_support()
+# if __name__ == "__main__":
+#     freeze_support()
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    print(f'Using device: {device}')
+#     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+#     print(f'Using device: {device}')
 
-    engine_path = "D:/ChessData/stockfish/stockfish-windows-x86-64-avx2.exe"
-    model_path = r"C:\Users\tmlaz\Desktop\chesspy\chess_cnn_model_250k.pth"
-    optimizer_path = r"C:\Users\tmlaz\Desktop\chesspy\chess_cnn_optimizer_250k.pth"
+#     engine_path = "D:/ChessData/stockfish/stockfish-windows-x86-64-avx2.exe"
+#     model_path = r"C:\Users\tmlaz\Desktop\chesspy\chess_cnn_model_250k.pth"
+#     optimizer_path = r"C:\Users\tmlaz\Desktop\chesspy\chess_cnn_optimizer_250k.pth"
 
-    json_file = "chess_from_pgn_250000.json"
-    dataset = ChessDataset(json_file)
-    data_loader = DataLoader(dataset, batch_size=32,
-                             shuffle=True, num_workers=4)
+#     json_file = "chess_from_pgn_250000.json"
+#     dataset = ChessDataset(json_file)
+#     data_loader = DataLoader(dataset, batch_size=32,
+#                              shuffle=True, num_workers=4)
 
-    model = ChessCNN()
-    optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)
-    scheduler = ReduceLROnPlateau(
-        optimizer, 'min', factor=0.1, patience=5, verbose=True)
+#     model = ChessCNN()
+#     optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=1e-5)
+#     scheduler = ReduceLROnPlateau(
+#         optimizer, 'min', factor=0.1, patience=5, verbose=True)
 
-    # model.load_state_dict(torch.load(model_path))
-    # if os.path.exists(optimizer_path):
-    #     optimizer.load_state_dict(torch.load(optimizer_path))
+#     # model.load_state_dict(torch.load(model_path))
+#     # if os.path.exists(optimizer_path):
+#     #     optimizer.load_state_dict(torch.load(optimizer_path))
 
-    train_chess_cnn(model, data_loader, optimizer,
-                    scheduler, device, epochs=25)
+#     train_chess_cnn(model, data_loader, optimizer,
+#                     scheduler, device, epochs=25)
 
-    torch.save(model.state_dict(), model_path)
-    torch.save(optimizer.state_dict(), optimizer_path)
+#     torch.save(model.state_dict(), model_path)
+#     torch.save(optimizer.state_dict(), optimizer_path)

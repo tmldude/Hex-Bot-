@@ -65,8 +65,10 @@ def main():
     # engine = EngineAI(chess.STARTING_BOARD_FEN)
     # print(engine.get_best_move(5, 'nega'))
     # print(engine.get_best_move(5, 'mini'))
+    engine = EngineAI(chess.STARTING_BOARD_FEN)
 
-    simulate_games()
+    engine.play_stock_fish()
+    # simulate_games()
     # board2 = Board(test_en_passant().board, Board.BLACK, en_passant_square_fen=41)
     # board2.print_board_hex()
 

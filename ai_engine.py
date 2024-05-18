@@ -18,11 +18,11 @@ class EngineAI:
     def __init__(self, board):
         self.board = chess.Board(board)
 
-        self.model = load_model('chess_model_250k.h5')
-        # self.model = ChessCNN()
-        # state_dict = torch.load('chess_cnn_model_50k.pth')
-        # self.model.load_state_dict(state_dict)
-        # self.model.eval()
+        # self.model = load_model('./models/chess_model_250k.h5')
+        self.model = ChessCNN()
+        state_dict = torch.load('./models/chess_cnn_model_50k.pth')
+        self.model.load_state_dict(state_dict)
+        self.model.eval()
 
     @staticmethod
     def evaluate_board_piece_count(board):
@@ -100,14 +100,14 @@ class EngineAI:
 
     def evaluate_board_CNN_torch(self, board):
         fen = board.fen()
-        board_tensor = self.fen_to_matrix(fen)
+        board_tensor = self.fen_to_tensor(fen)
         # print(f"Board Tensor: {board_tensor}")
         with torch.no_grad():
             output = self.model(board_tensor)
         # print(f"Model Output: {output}")
         return output.item()
 
-    def evaluate_board_CNN_keras(self, board):
+    def evaluate_board_CNN(self, board):
         fen = board.fen()
         matrix = self.fen_to_matrix(fen)
         output = self.model.predict(matrix, verbose=0)
@@ -125,7 +125,7 @@ class EngineAI:
             max_eval = float('-inf')
             for move in legal_moves:
                 board.push(move)
-                eval = EngineAI.minimax(board, depth - 1, alpha,
+                eval = self.minimax(board, depth - 1, alpha,
                                         beta, False, -color)
                 board.pop()
                 max_eval = max(max_eval, eval)
@@ -137,7 +137,7 @@ class EngineAI:
             min_eval = float('inf')
             for move in legal_moves:
                 board.push(move)
-                eval = EngineAI.minimax(
+                eval = self.minimax(
                     board, depth - 1, alpha, beta, True, -color)
                 board.pop()
                 min_eval = min(min_eval, eval)
@@ -155,7 +155,7 @@ class EngineAI:
 
         for move in legal_moves:
             board.push(move)
-            eval = -EngineAI.negamax(board, depth - 1, -beta, -alpha, -color)
+            eval = -self.negamax(board, depth - 1, -beta, -alpha, -color)
             board.pop()
             max_eval = max(max_eval, eval)
             alpha = max(alpha, eval)
@@ -171,8 +171,7 @@ class EngineAI:
         beta = float('inf')
 
         legal_moves = list(self.board.legal_moves)
-        color = 1 if self.board.turn == chess.WHITE else - \
-            1  # Determine the current player's color
+        color = 1 if self.board.turn == chess.WHITE else -1 # Determine the current player's color
 
         for move in legal_moves:
             self.board.push(move)
@@ -237,7 +236,7 @@ class EngineAI:
                 initial_score = self.evaluate_board_CNN_torch(board)
 
                 # print(f"initial_score_CNN: {initial_score}")
-                move = self.get_best_move(2, 'nega')
+                move = self.get_best_move(4, 'nega')
                 board.push(move)
 
             who_goes_first = 0 if who_goes_first else 1
